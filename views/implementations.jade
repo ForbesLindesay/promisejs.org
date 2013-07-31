@@ -1,0 +1,19 @@
+extends ./layout
+
+block content
+  .row-fluid
+    .span12
+      h1 Implementations
+
+      p.
+        This page lists some of the more popular promise implementations.  Promise is my own, so it's first.
+        Q is my favourite of other people's, so it's second.  I haven't used the other implementations here
+        but they seem relatively popular.
+
+      p
+        | The Promises/A+ maintains a complete list of implementations 
+        a(href='https://github.com/promises-aplus/promises-spec/blob/master/implementations.md') here
+        |  so look at that if you want a wider choice.
+
+      each imp, name in implementations
+        +implementation(name, 2)

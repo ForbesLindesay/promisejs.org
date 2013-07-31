@@ -222,78 +222,11 @@ block content
       p.
         There are a large number of Promises/A+ compatible implementations out there, not all of which have <code>.done</code> methods or <code>Promise.all</code> methods.  You should feel free to use whichever implementation best fits in with your needs.  Here are the two I would recommend.
 
-      h3 Promise
+      +implementation('promise', 3)
 
-      p.
-        Promise, by Forbes Lindesay, is a very simple, high performance promise library.  It is designed to just provide the bare bones required to use promises in the wild.
+      +implementation('q', 3)
 
-      p If you use node.js or browserify you can install it using npm:
+      h3 Other
 
-      pre
-        code.
-          npm install promise
-
-      p and then load it using require:
-
-      :js
-        var Promise = require('promise')
-
-      p
-        | If you are using any other module system or just want it directly in the browser, you can download a version with a standalone module defenition from 
-        a(href='/implementations/promise/promise-' + versions.promise + '.js') here
-        |  (with 
-        a(href='https://github.com/ForbesLindesay/umd') UMD
-        |  support) or add a script tag directly:
-
-      pre
-        code
-          = '<script src="http://www.promisejs.org/implementations/promise/promise-' + versions.promise + '.js"></script>'
-
-      p Once installed, you can create a new promise using:
-
-      :js
-        var myPromise = new Promise(function (resolve, reject) {
-          // call resolve(value) to fulfill the promise with that value
-          // call reject(error) if something goes wrong
-        })
-
-      p Full documentation can be found on 
-        a(href='https://github.com/then/promise') GitHub
-
-      h3 Q
-
-      p.
-        Q, by Kris Kowal, is an advanced, fully featured promise library.  It is designed to be fully featured and has lots of helper methods to make certain common tasks easier.  It is somewhat slower than Promise, but can make up for this with support for better stack traces and additional features.
-
-      p If you use node.js or browserify you can install it using npm:
-
-      pre
-        code.
-          npm install q
-
-      p and then load it using require:
-
-      :js
-        var Q = require('q')
-
-      p
-        | If you are using any other module system or just want it directly in the browser, you can download a version with a standalone module defenition from 
-        a(href='/implementations/q/q-' + versions.q + '.js') here
-        |  (with 
-        a(href='https://github.com/ForbesLindesay/umd') UMD
-        |  support) or add a script tag directly:
-
-      pre
-        code
-          = '<script src="http://www.promisejs.org/implementations/q/q-' + versions.q + '.js"></script>'
-
-      p Once installed, you can create a new promise using:
-
-      :js
-        var myPromise = Q.promise(function (resolve, reject) {
-          // call resolve(value) to fulfill the promise with that value
-          // call reject(error) if something goes wrong
-        })
-
-      p Full documentation can be found on 
-        a(href='https://github.com/kriskowal/q') GitHub
+      p You can find more implementations 
+        a(href='/implementations') here
