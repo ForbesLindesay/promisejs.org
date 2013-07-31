@@ -2,7 +2,7 @@
 mixin implementation(name, headingLevel)
   - var implementation = implementations[name]
 
-  | <h#{headingLevel}>#{implementation.name}</h#{headingLevel}>
+  | <h#{headingLevel} id='i-#{name}'>#{implementation.name}</h#{headingLevel}>
 
   p= implementation.description
 
@@ -55,6 +55,8 @@ html(lang='en')
       #push
     #footer-wrapper
       footer
+        .right
+          script(data-gittip-username="promisejs.org",src="https://www.gittip.com/assets/widgets/0002.js")
         p
           | Developed by&nbsp;
           a.jepso(href='http://www.forbeslindesay.co.uk') @ForbesLindesay
