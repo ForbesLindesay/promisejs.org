@@ -1,0 +1,31 @@
+{
+  "name": "promisejs.org",
+  "version": "1.0.0",
+  "versionify": "1.0.0",
+  "private": true,
+  "description": "A website dedicated to promises in JavaScript",
+  "dependencies": {
+    "transform": "~1.0.2",
+    "less": "~1.4.1",
+    "jade": "~0.34.1",
+    "browserify-middleware": "~1.14.1",
+    "express": "~3.3.4",
+    "highlight.js": "~7.3.0",
+    "browserify": "~2.25.1",
+    "promise": "3.2.0",
+    "q": "0.9.6"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "versionify": "*",
+    "stop": "*",
+    "rimraf": "*",
+    "mandate": "*"
+  },
+  "scripts": {
+    "prerelease": "versionify && rimraf out",
+    "release": "stop && mandate",
+    "postrelease": "rimraf out",
+    "test": "mocha -R spec"
+  }
+}

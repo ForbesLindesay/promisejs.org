@@ -1,0 +1,30 @@
+!!! 5
+html(lang='en')
+  head
+    meta(charset='utf8')
+    title Promises
+    link(href='/style.css', rel='stylesheet')
+    link(href='http://yandex.st/highlightjs/7.3/styles/rainbow.min.css', rel='stylesheet')
+  body
+    #wrap
+      .navbar.navbar-fixed-top
+        .navbar-inner
+          .container
+            a.brand(href='/') Promises
+            ul.nav.navbar-nav
+              li: a(href='/intro') Introduction
+            ul.nav.navbar-nav.pull-right
+              li: a(href='http://promises-aplus.github.io/promises-spec') Spec
+      #content
+        block content
+          - throw new Error('Every page must have some content.')
+      #push
+    #footer-wrapper
+      footer
+        p
+          | Developed by&nbsp;
+          a.jepso(href='http://www.forbeslindesay.co.uk') @ForbesLindesay
+        p
+          | All views expressed are my own and do not necessarily reflect the views of the&nbsp;
+          a.jepso(href='http://promises-aplus.github.io/promises-spec') Promises/A+
+          |  organisation
