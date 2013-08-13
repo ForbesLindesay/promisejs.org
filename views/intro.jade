@@ -16,7 +16,7 @@ block content
 
       p.
         This guide assumes familiarity with basic JavaScript and should be suitable for people new
-        to asynchonous programming and those with some experience in either the browser on node.js
+        to asynchronous programming and those with some experience in either the browser on node.js
 
       h2#motivation Motivation
 
@@ -131,7 +131,7 @@ block content
 
       p.
         Here, errors thrown by <code>JSON.parse</code> are not handled by the error handler we attached,
-        but some errors we recieved from calling <code>get</code> are handled with a retry.  Note how
+        but some errors we received from calling <code>get</code> are handled with a retry.  Note how
         we can return a promise from <code>.then</code> and it is automatically unwrapped:
 
       :js
@@ -166,7 +166,7 @@ block content
         })
 
       p.
-        This is extremely useful if you need to run lots of operations in parallel.  The idea also extends to large un-bounded arrays of values:
+        This is extremely useful if you need to run lots of operations in parallel.  The idea also extends to large, unbounded arrays of values:
 
       :js
         function readFiles(files) {
