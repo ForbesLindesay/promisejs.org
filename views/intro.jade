@@ -15,8 +15,8 @@ block content
       h1 Introduction to Promises
 
       p.
-        This guide assumes familiarity with basic JavaScript and should be suitable for people new
-        to asynchronous programming and those with some experience in either the browser on node.js
+        This guide assumes familiarity with basic JavaScript and should be suitable for both people new
+        to asynchronous programming and those with some experience.
 
       h2#motivation Motivation
 
@@ -33,10 +33,10 @@ block content
         li You can no longer use the built in control flow constructs and they must all be re-invented to work asynchronously.
 
       p.
-        Many APIs in the browser use some kind of event based model for control flow, which solves problem 1, but not problems 3 to 4.
+        Many APIs in the browser use some kind of event based model for control flow, which solves problem 1, but not problems 2 to 4.
 
       p.
-        Promises aim to solve all these issues, although problem number 4 requires new language features, so is not fixed until ES6, which supports generator functions.
+        Promises aim to solve issues 1 to 3 and can solve problem 4 in ES6 (with the use of generators).
 
       h2#done Basic Usage
 
