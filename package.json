@@ -29,5 +29,9 @@
     "release": "stop && mandate",
     "postrelease": "rimraf out",
     "test": "mocha -R spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ForbesLindesay/promisejs.org.git"
   }
 }
