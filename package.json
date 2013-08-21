@@ -1,7 +1,7 @@
 {
   "name": "promisejs.org",
-  "version": "1.0.5",
-  "versionify": "1.0.5",
+  "version": "1.0.11",
+  "versionify": "1.0.11",
   "private": true,
   "description": "A website dedicated to promises in JavaScript",
   "dependencies": {
@@ -26,7 +26,7 @@
   },
   "scripts": {
     "prerelease": "versionify && rimraf out",
-    "release": "stop && mandate",
+    "release": "stop && node implementations/validate && mandate",
     "postrelease": "rimraf out",
     "test": "mocha -R spec"
   }
