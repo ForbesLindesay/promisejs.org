@@ -28,7 +28,7 @@ module.exports = {
     home: "https://github.com/tildeio/rsvp.js",
     description: "A tiny implementation of Promises/A+ and a mixin for turning objects into event targets.",
     require: "var RSVP = require('rsvp');",
-    create: "var deferred = when.defer()\nvar myPromise = deferred.promise\n// call deferred.resolve(value) to fulfill the promise with that value\n// call deferred.reject(error) if something goes wrong",
+    create: "var myPromise = new RSVP.Promise(function (resolve, reject) {\n  // call resolve(value) to fulfill the promise with that value\n  // call reject(error) if something goes wrong\n})",
     build: "browserify([require.resolve('rsvp')]).bundle({standalone: 'RSVP'})"
   },
   vow: {
@@ -36,7 +36,7 @@ module.exports = {
     home: "https://github.com/dfilatov/jspromise",
     description: "A Promises/A+ implementation.",
     require: "var Vow = require('vow');",
-    create: "var myPromise = new RSVP.Promise(function (resolve, reject) {\n  // call resolve(value) to fulfill the promise with that value\n  // call reject(error) if something goes wrong\n})",
+    create: "var myPromise = Vow.promise()\n// call myPromise.fulfill(value) to fulfill the promise with that value\n// call myPromise.reject(error) if something goes wrong",
     build: "browserify([require.resolve('vow')]).bundle({standalone: 'Vow'})"
   }
 }
