@@ -6,16 +6,16 @@
   "description": "A website dedicated to promises in JavaScript",
   "dependencies": {
     "transform": "~1.0.2",
-    "less": "~1.4.1",
-    "jade": "~0.34.1",
-    "express": "~3.3.4",
+    "less": "~1.5.0",
+    "jade": "~0.35.0",
+    "express": "~3.4.2",
     "highlight.js": "~7.3.0",
-    "browserify": "~2.25.1",
+    "browserify": "~2.34.3",
     "promise": "3.2.0",
-    "q": "0.9.6",
-    "when": "2.2.1",
-    "vow": "0.3.9",
-    "rsvp": "2.0.1"
+    "q": "0.9.7",
+    "when": "2.5.1",
+    "vow": "0.3.10",
+    "rsvp": "2.0.4"
   },
   "devDependencies": {
     "mocha": "*",
