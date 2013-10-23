@@ -33,7 +33,7 @@ module.exports = {
   },
   vow: {
     name: "Vow",
-    home: "https://github.com/dfilatov/jspromise",
+    home: "https://github.com/dfilatov/vow",
     description: "A Promises/A+ implementation.",
     require: "var Vow = require('vow');",
     create: "var myPromise = Vow.promise()\n// call myPromise.fulfill(value) to fulfill the promise with that value\n// call myPromise.reject(error) if something goes wrong",
