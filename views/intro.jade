@@ -11,6 +11,7 @@ block content
           li: a(href='#then') Transformation
           li: a(href='#all') Combination
           li: a(href='#implementations') Implementations / Downloads
+          li: a(href='#code') Code
     .span9
       h1 Introduction to Promises
 
@@ -41,6 +42,9 @@ block content
       h2#done Basic Usage
 
       p.
+        Promises use a method named <code>.then</code>, but to introduce the concept we're going to use a <a href="#code">simplified method</a> called <code>.fakeThen</code>.  We'll use <code>.then</code> in the <a href="#then">next section</a>.
+
+      p.
         The core idea behind promises is that a promise represents a value that is the result of an asynchronous operation.  They may instead turn out to be a thrown error.  Asynchronous functions should return promises:
 
       :js
@@ -50,16 +54,17 @@ block content
         If we request the content of the web page <code>www.example.com</code> we will be doing it asynchronously so we get a promise back.
 
       p.
-        In order to extract the value from that promise, we use <code>.done</code> which queues a function to be executed when the promise is fulfilled with some result.
+        In order to extract the value from that promise, we'll make 
+        a simplified promise handler called <code>.fakeThen</code> which queues a function to be executed when the promise is fulfilled with some result.
 
       :js
         var prom = get('http://www.example.com')
-        prom.done(function (content) {
+        prom.fakeThen(function (content) {
           console.log(content)
         })
 
       p.
-        Note how we're passing a function that has not been called to <code>.done</code> and it will be called only once, when the promise is fulfilled.  We can call <code>.done</code> as many times as we want and as late or early as we want and we will always get the same result.  For example, it's fine to call it after the promise has already been resolved:
+        Note how we're passing a function that has not been called to <code>.fakeThen</code> and it will be called only once, when the promise is fulfilled.  We can call <code>.fakeThen</code> as many times as we want and as late or early as we want and we will always get the same result.  For example, it's fine to call it after the promise has already been resolved:
 
       :js
         var cache = {}
@@ -69,22 +74,22 @@ block content
         }
 
         var promA = getCache('http://www.example.com')
-        promA.done(function (content) {
+        promA.fakeThen(function (content) {
           console.log(content)
         })
         setTimeout(function () {
           var promB = getCache('http://www.example.com')
-          promB.done(function (content) {
+          promB.fakeThen(function (content) {
             console.log(content)
           })
         }, 10000)
 
       p.
-        Of course, requesting an error page can easilly go wrong, and throw an error.  By default, <code>.done</code> just throws that error so it gets logged appropriately and (in environments other than the browser) crashes the application.  We often want to attach our own handler instead though:
+        Of course, requesting an error page can easilly go wrong, and throw an error.  By default, <code>.fakeThen</code> just throws that error so it gets logged appropriately and (in environments other than the browser) crashes the application.  We often want to attach our own handler instead though:
 
       :js
         var prom = get('http://www.example.com')
-        prom.done(function (content) {
+        prom.fakeThen(function (content) {
           console.log(content)
         }, function (ex) {
           console.error('Requesting www.example.com failed, maybe you should try again?')
@@ -106,7 +111,7 @@ block content
             })
         }
 
-        getJSON('http://www.example.com/foo.json').done(function (res) {
+        getJSON('http://www.example.com/foo.json').fakeThen(function (res) {
           console.dir(res)
         })
 
@@ -125,7 +130,7 @@ block content
             })
         }
 
-        getJSON('http://www.example.com/foo.json').done(function (res) {
+        getJSON('http://www.example.com/foo.json').fakeThen(function (res) {
           console.dir(res)
         })
 
@@ -142,7 +147,7 @@ block content
           .then(function (res) {
             return JSON.parse(res)
           })
-        prom.done(function (finalResult) {
+        prom.fakeThen(function (finalResult) {
           console.dir(finalResult)
           //this is actually the very final result
         })
@@ -156,7 +161,7 @@ block content
         var a = get('http://www.example.com')
         var b = get('http://www.example.co.uk')
         var both = Promise.all([a, b])
-        both.done(function (res) {
+        both.fakeThen(function (res) {
           var a = res[0]
           var b = res[1]
           console.dir({
@@ -174,7 +179,7 @@ block content
             return readFile(name)
           }))
         }
-        readFiles(['fileA.txt', 'fileB.txt', 'fileC.txt']).done(function (filesContents) {
+        readFiles(['fileA.txt', 'fileB.txt', 'fileC.txt']).fakeThen(function (filesContents) {
           console.dir(filesContents)
         })
 
@@ -186,7 +191,7 @@ block content
           console.log('.com')
           console.dir(res)
           return get('http://www.example.co.uk')
-        }).done(function (res) {
+        }).fakeThen(function (res) {
           console.log('.co.uk')
           console.dir(res)
         })
@@ -213,14 +218,14 @@ block content
             return result
           })
         }
-        readFiles(['fileA.txt', 'fileB.txt', 'fileC.txt']).done(function (filesContents) {
+        readFiles(['fileA.txt', 'fileB.txt', 'fileC.txt']).fakeThen(function (filesContents) {
           console.dir(filesContents)
         })
 
       h2#implementations Implementations / Downloads
 
       p.
-        There are a large number of Promises/A+ compatible implementations out there, not all of which have <code>.done</code> methods or <code>Promise.all</code> methods.  You should feel free to use whichever implementation best fits in with your needs.  Here are the two I would recommend.
+        There are a large number of Promises/A+ compatible implementations out there, not all of which have <code>.fakeThen</code> methods or <code>Promise.all</code> methods.  You should feel free to use whichever implementation best fits in with your needs.  Here are the two I would recommend.
 
       +implementation('promise', 3)
 
@@ -230,3 +235,20 @@ block content
 
       p You can find more implementations 
         a(href='/implementations') here
+
+      h2#code Code
+
+      p.
+        The following code creates the <code>.fakeThen</code> method we used.
+
+      :js
+        Promise.prototype.fakeThen = function (cb, eb) {
+          return this.then(cb, eb).catch(function (err) {
+            // not all browser support setImmediate so use setTimeout
+            // to throw our error in the next turn of the event loop and
+            // prevent `.then`'s default error handling.
+            setTimeout(function () {
+              throw err;
+            }, 0);
+          });
+        };
