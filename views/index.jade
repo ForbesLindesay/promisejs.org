@@ -164,17 +164,13 @@ block content
             .small-code
               :js
                 if (!Promise.prototype.done) {
-                  Promise.prototype.done = function () {
-                    var promise = this;
-                    if (arguments.length) {
-                      promise = this.then.apply(this, arguments);
-                    }
-                    promise.then(null, function (err) {
+                  Promise.prototype.done = function (cb, eb) {
+                    this.then(cb, eb).then(null, function (err) {
                       setTimeout(function () {
                         throw err;
-                      },0);
+                      }, 0);
                     });
-                  }
+                  };
                 }
 
         h2#then Transformation / Chaining
