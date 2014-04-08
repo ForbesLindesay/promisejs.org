@@ -1,4 +1,4 @@
-!!! 5
+doctype html
 mixin implementation(name, headingLevel)
   - var implementation = implementations[name]
 
@@ -36,22 +36,20 @@ html(lang='en')
   head
     meta(charset='utf8')
     title Promises
-    link(href='/style.css', rel='stylesheet')
-    link(href='http://yandex.st/highlightjs/7.3/styles/rainbow.min.css', rel='stylesheet')
+    link(href='/style/bundle.css', rel='stylesheet')
   body
     #wrap
-      .navbar.navbar-fixed-top
-        .navbar-inner
-          .container
-            a.brand(href='/') Promises
-            ul.nav.navbar-nav
-              li: a(href='/intro') Introduction
-              li: a(href='/implementations') Implementations
-            ul.nav.navbar-nav.pull-right
-              li: a(href='http://promisesaplus.com/') Spec
-      #content
-        block content
-          - throw new Error('Every page must have some content.')
+      .navbar.navbar-default.navbar-static-top
+        .container
+          .navbar-header
+            a.navbar-brand(href='/') Promises
+          ul.nav.navbar-nav
+            li: a(href='/') Home
+            li: a(href='/implementations') Implementations
+          ul.nav.navbar-nav.pull-right
+            li: a(href='http://promisesaplus.com/') Spec
+      block content
+        - throw new Error('Every page must have some content.')
       #push
     #footer-wrapper
       footer
@@ -67,6 +65,7 @@ html(lang='en')
         p
           | Can you make this better?  Please fork it on 
           a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub
+    block scripts
     script.
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

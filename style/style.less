@@ -1,31 +1,23 @@
-@import "bootstrap/bootstrap.less";
-@import "bootstrap/responsive.less";
+@import (npm) "inconsolata";
+@import (npm) "twbs";
+@import "variables.less";
 @import "bootswatch.less";
+@import "github.less";
 
 body { height: 100%; margin: 0; }
-#content { padding-top: 100px; }
 
 /* Landing page */
 .jumbotron { position: relative; text-align: center; }
 .jumbotron h1 { font-size: 80px; font-weight: bold; letter-spacing: -1px; line-height: 1; text-shadow: 0 1px 3px rgba(0,0,0,.4), 0 0 30px rgba(0,0,0,.075); }
-.jumbotron p { font-size: 24px; font-weight: 300; line-height: 1.25; margin-bottom: 30px; }
 
-.masthead .btn { padding: 19px 24px; font-size: 24px; font-weight: 200; color: #fff; /* redeclare to override the `.jumbotron a` */ }
-
-.masthead { margin-top: -40px; padding: 0px 0 80px; margin-bottom: 0; }
-.masthead h1 { font-size: 120px; line-height: 1; letter-spacing: -2px; }
+.jumbotron {
+  background: none;
+}
 
 .ribbon { position: absolute; top: 0; right: 0; border: 0; z-index: 2000; }
 
 
 /* Responsive */
-@media (max-width: 979px) {
-  .masthead { margin-top: 0px; }
-  .masthead h1 { font-size: 70px; }
-  .jumbotron p { font-size: 18px; }
-  .masthead .btn { margin-top: 20px; }
-  #content { padding-top: 0px; }
-}
 @media (max-width: 700px) {
   .jumbotron h1 { font-size: 60px; }
 }
@@ -66,16 +58,22 @@ a.jepso, a.jepso:hover, a.jepso:active {
   color: #BF0080;
 }
 
-@media (min-width: 975px) {
-  h2[id]{ padding-top: 50px; }
-}
-
 pre {
   margin: 1em;
 }
 
-.row-fluid {
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
+pre code {
+  font-size: 1.8em;
+  font-smooth:always;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Inconsolata' monospace;
+  color: black;
+}
+pre {
+  background: white;
+  box-shadow: 0px 0px 6px rgba(0,0,0,0.3);
+  border-radius: 0;
+}
+.small-code pre code {
+  font-size: 1.2em;
 }

@@ -1,9 +1,10 @@
 'use strict'
 
+var browserify = require('browserify-middleware')
 var filters = require('jade').filters
 var highlight = require('highlight.js').highlight
 var jade = require('transform')('jade')
-var less = require('transform')('less')
+var less = require('less-file')
 var express = require('express')
 var app = express()
 
@@ -22,10 +23,10 @@ jade.settings('html', filters.html)
 app.use(express.favicon(__dirname + '/favicon.ico'))
 
 app.get('/', jade('./views/index.jade'))
-app.get('/intro', jade('./views/intro.jade'))
 app.get('/implementations', jade('./views/implementations.jade'))
-app.get('/style.css', less('./style/style.less'))
+app.get('/client/intro.js', browserify('./client/intro.js'))
 app.use('/implementations', require('./implementations/serve.js'))
+app.use('/style', less('./style/style.less'))
 
 app.listen(3000)
 console.log('listening on http://localhost:3000')
