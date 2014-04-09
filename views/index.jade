@@ -1,220 +1,239 @@
 extends ./layout.jade
 
 block scripts
+  script(src="/polyfill/polyfill-#{versions.promise}.js")
   script(src="/client/intro.js")
 
 block content
   .container
-    .jumbotron
-      h1 Promises
-  .container
-    .row
-      .col-md-3.hidden-xs.hidden-sm
-        .well.sidebar-nav
-          ul.nav.nav-list
-            li.nav-header Introduction to Promises
-            li: a(href='#motivation') Motivation
-            li: a(href='#definition') What is a promise?
-            li: a(href='#construction') Constructing a promise
-            li: a(href='#done') Awaiting a promise
-            li: a(href='#then') Transformation
-            li: a(href='#implementations') Implementations / Downloads
-      .col-md-9  
-        h2#motivation Motivation
+    h1 Promises
+    h2#motivation Motivation
 
-        p.
-          Consider the following synchronous code to read a file and parse
-          it as JSON. It is simple and easy to read, but you wouldn't want
-          to use it in most applications as it is blocking. This means that
-          while you are reading the file from disk (a slow operation) nothing
-          else can happen.
-        
-        :js
-          function readJSONSync(filename) {
-            return JSON.parse(fs.readFileSync(filename, 'utf8'));
+    p.
+      Consider the following synchronous code to read a file and parse
+      it as JSON. It is simple and easy to read, but you wouldn't want
+      to use it in most applications as it is blocking. This means that
+      while you are reading the file from disk (a slow operation) nothing
+      else can happen.
+
+    :js
+      function readJSONSync(filename) {
+        return JSON.parse(fs.readFileSync(filename, 'utf8'));
+      }
+
+    p.
+      To make our application performant and responsive, we need to make
+      all the operations that involve IO be asynchronous. The simplest
+      way to do this would be to use a callback. However, a naive
+      implementation will probably go wrong:
+
+    :js
+      function readJSON(filename, callback){
+        fs.readFile(filename, 'utf8', function (err, res){
+          if (err) return callback(err);
+          callback(null, JSON.parse(res));
+        });
+      }
+
+    ul
+      li.
+        The extra #[code callback] parameter confuses our idea of
+        what is input and what is the return value.
+      li It doesn't work at all with controll flow primatives.
+      li It doesn't handle errors thrown by #[code JSON.parse]
+
+    p.
+      We need to handle errors thrown by #[code JSON.parse] but we
+      also need to be careful not to handle errors thrown by the
+      #[code callback] function.  By the time we've done all of this
+      our code is a mess of error handling:
+
+    :js
+      function readJSON(filename, callback){
+        fs.readFile(filename, 'utf8', function (err, res){
+          if (err) return callback(err);
+          try {
+            res = JSON.parse(res);
+          } catch (ex) {
+            return callback(ex);
           }
+          callback(null, res);
+        });
+      }
 
+    p.
+      Despite all this mess of error handling code, we are still
+      left with the problem of the extra #[code callback] parameter
+      hanging around. Promises help you naturally handle errors, and
+      write cleaner code by not having #[code callback] parameters.
+
+    h2#definition What is a promise?
+
+    p.
+      The core idea behind promises is that a promise represents the
+      result of an asynchronous operation. A promise is in one of
+      three different states:
+
+    ul
+      li pending - The initial state of a promise
+      li fulfilled - The state of a promise representing a successful operation.
+      li rejected - The state of a promise representing a failed operation.
+
+    p.
+      Once a promise is fulfilled or rejected, it is imutable (i.e. it can
+      never change again).
+
+    h2#construction Constructing a promise
+
+    p.
+      Once all of the APIs return promises, it should be relatively rare
+      that you need to construct one by hand. In the mean time, we need
+      a way to polyfill existing APIs.  For example:
+
+    :js
+      function readFile(filename, enc){
+        return new Promise(function (fulfill, reject){
+          fs.readFile(filename, enc, function (err, res){
+            if (err) reject(err);
+            else fullfill(res);
+          });
+        });
+      }
+
+    p.
+      We use #[code new Promise] to construct the promise. We give the
+      constructor a factory function which does the actual work. This
+      function is called immediately with two arguments. The first argument
+      fulfills the promise and the second argument rejects the promise.
+      Once the operation has completed, we call the appropriate function.
+
+    h2#done Awaiting a promise
+
+    p.
+      In order to use a promise, we must somehow be able to wait for it
+      to be fulfilled or rejected. The way to do this is using
+      #[code promise.done] (see warning at the end of this section if
+      attempting to run these samples).
+
+    p.
+      With this in mind, it's easy to re-write our earlier #[code readJSON]
+      function to use promises:
+
+    :js
+      function readJSON(filename){
+        return new Promise(function (fulfill, reject){
+          readFile(filename, 'utf8').done(function (res){
+            try {
+              fullfill(JSON.parse(res));
+            } catch (ex) {
+              reject(ex);
+            }
+          }, reject);
+        });
+      }
+
+    p.
+      This still has lots of error handling code (we'll see how we can
+      improve on that in the next section) but it's a lot less error
+      prone to write, and we no longer have a strange extra parameter.
+
+    .panel.panel-danger
+      .panel-heading
+        h3.panel-title Non Standard
+      .panel-body
         p.
-          To make our application performant and responsive, we need to make
-          all the operations that involve IO be asynchronous. The simplest
-          way to do this would be to use a callback. However, a naive
-          implementation will probably go wrong:
+          Note that #[code promise.done] (used in the examples in
+          this section) has not been standardised. It is supported by most
+          major promise libraries though, and is usefull both as a teaching
+          aid and in production code. I recommend using it along with the following polyfill:
 
-        :js
-          function readJSON(filename, callback){
-            fs.readFile(filename, 'utf8', function (err, res){
-              if (err) return callback(err);
-              callback(null, JSON.parse(res));
-            });
-          }
+        a.no-link.small-code(href="/polyfills/promise-done-1.0.0.js")
+          :html
+            <script src="http://promisejs.org/polyfills/promise-done-1.0.0.js"></script>
 
-        ul
-          li.
-            The extra #[code callback] parameter confuses our idea of
-            what is input and what is the return value.
-          li It doesn't work at all with controll flow primatives.
-          li It doesn't handle errors thrown by #[code JSON.parse]
-        
-        p.
-          We need to handle errors thrown by #[code JSON.parse] but we
-          also need to be careful not to handle errors thrown by the
-          #[code callback] function.  By the time we've done all of this
-          our code is a mess of error handling:
+    h2#then Transformation / Chaining
 
-        :js
-          function readJSON(filename, callback){
-            fs.readFile(filename, 'utf8', function (err, res){
-              if (err) return callback(err);
-              try {
-                res = JSON.parse(res);
-              } catch (ex) {
-                return callback(ex);
-              }
-              callback(null, res);
-            });
-          }
+    p.
+      Following our example through, what we really want to do is transform
+      the promise via another operation. In our case, this second operation
+      is synchronous, but it might just as easilly have been an asynchronous
+      operation. Fortunately, promises have a (fully standardised, see
+      warning re jQuery) method for transforming promises and chainging
+      operations.
+    p.
+      Put simply, #[code .then] is to #[code .done] as
+      #[code .map] is to #[code .forEach]. To put that another way, use
+      #[code .then] whenever you're going to do something with the result
+      (even if that's just waiting for it to finish) and use #[code .done]
+      whenever you aren't planning on doing anything with the result.
 
-        p.
-          Despite all this mess of error handling code, we are still
-          left with the problem of the extra #[code callback] parameter
-          hanging around. Promises help you naturally handle errors, and
-          write cleaner code by not having #[code callback] parameters.
+    p.
+      Now we can re-write our original example as simply:
 
-        h2#definition What is a promise?
+    :js
+      function readJSON(filename){
+        return readFile(filename, 'utf8').then(function (res){
+          return JSON.parse(res)
+        })
+      }
 
-        p.
-          The core idea behind promises is that a promise represents the
-          result of an asynchronous operation. A promise is in one of
-          three different states:
+    p.
+      Since #[code JSON.parse] is just a function, we could re-write this as:
 
-        ul
-          li pending - The initial state of a promise
-          li fulfilled - The state of a promise representing a successful operation.
-          li rejected - The state of a promise representing a failed operation.
+    :js
+      function readJSON(filename){
+        return readFile(filename, 'utf8').then(JSON.parse);
+      }
 
-        p.
-          Once a promise is fulfilled or rejected, it is imutable (i.e. it can
-          never change again).
+    p This is very close the the simple synchronous example we started out with.
 
-        h2#construction Constructing a promise
+    h2#implementations Implementations / Polyfills
 
-        p.
-          Once all of the APIs return promises, it should be relatively rare
-          that you need to construct one by hand. In the mean time, we need
-          a way to polyfill existing APIs.  For example:
-          
-        :js
-          function readFile(filename, enc){
-            return new Promise(function (fulfill, reject){
-              fs.readFile(filename, enc, function (err, res){
-                if (err) reject(err);
-                else fullfill(res);
-              });
-            });
-          }
+    p Promises are useful both in node.js and the browser
 
-        p.
-          We use #[code new Promise] to construct the promise. We give the
-          constructor a factory function which does the actual work. This
-          function is called immediately with two arguments. The first argument
-          fulfills the promise and the second argument rejects the promise.
-          Once the operation has completed, we call the appropriate function.
+    h3 Browser
 
-        h2#done Awaiting a promise
+    p.
+      Promises are currently only supported by a pretty small selection of browsers
+      (#[a(href="http://kangax.github.io/es5-compat-table/es6/#Promise") see kangax compatability tables]).
+      The good news is that they're extremely easy to polyfill:
+    a.no-link.small-code(href="/polyfills/promise-" + versions.promise + ".js")
+      :html
+        <script src="http://promisejs.org/polyfills/promise-#{versions.promise}.js"></script>
+    p.
+      None of the browsers currently support #[code Promise.prototype.done]
+      so if you want to use that feature, and you are not including the
+      polyfill above, you must at least include this polyfill:
 
-        p.
-          In order to use a promise, we must somehow be able to wait for it
-          to be fulfilled or rejected. The way to do this is using
-          #[code promise.done] (see warning at the end of this section if
-          attempting to run these samples).
+    a.no-link.small-code(href="/polyfills/promise-done-1.0.0.js")
+      :html
+        <script src="http://promisejs.org/polyfills/promise-done-1.0.0.js"></script>
 
-        p.
-          With this in mind, it's easy to re-write our earlier #[code readJSON]
-          function to use promises:
+    h3 Node.js
+    
+    p It's generally not seen as good practise to polyfill things in node.js. Instead, you're better off just requiring the library wherever you need it.
+    
+    p To install "promise" run:
 
-        :js
-          function readJSON(filename){
-            return new Promise(function (fulfill, reject){
-              readFile(filename, 'utf8').done(function (res){
-                try {
-                  fullfill(JSON.parse(res));
-                } catch (ex) {
-                  reject(ex);
-                }
-              }, reject);
-            });
-          }
+    a.no-link.small-code(href="https://github.com/then/promise")
+      pre: code npm install promise --save
 
-        p.
-          This still has lots of error handling code (we'll see how we can
-          improve on that in the next section) but it's a lot less error
-          prone to write, and we no longer have a strange extra parameter.
+    p Then you can load it into a local variable using "require"
 
-        .panel.panel-danger
-          .panel-heading
-            h3.panel-title Non Standard
-          .panel-body
-            p.
-              Note that #[code promise.done] (used in the examples in
-              this section) has not been standardised. It is supported by most
-              major promise libraries though, and is usefull both as a teaching
-              aid and in production code.
-            p.
-              I recommend using it along with the following polyfill:
-            .small-code
-              :js
-                if (!Promise.prototype.done) {
-                  Promise.prototype.done = function (cb, eb) {
-                    this.then(cb, eb).then(null, function (err) {
-                      setTimeout(function () {
-                        throw err;
-                      }, 0);
-                    });
-                  };
-                }
+    a.no-link.small-code(href="https://github.com/then/promise")
+      :js
+        var Promise = require('promise');
 
-        h2#then Transformation / Chaining
-  
-        p.
-          Following our example through, what we really want to do is transform
-          the promise via another operation. In our case, this second operation
-          is synchronous, but it might just as easilly have been an asynchronous
-          operation. Fortunately, promises have a (fully standardised, see
-          warning re jQuery) method for transforming promises and chainging
-          operations.
-        p.
-          Put simply, #[code .then] is to #[code .done] as
-          #[code .map] is to #[code .forEach]. To put that another way, use
-          #[code .then] whenever you're going to do something with the result
-          (even if that's just waiting for it to finish) and use #[code .done]
-          whenever you aren't planning on doing anything with the result.
+    p The "promise" library also provides a couple of really useful extensions for interacting with node.js
 
-        p.
-          Now we can re-write our original example as simply:
+    .small-code
+      :js
+        var readFile = Promise.denodeify(require('fs').readFile);
+        // now `readFile` will return a promise rather than expecting a callback
 
-        :js
-          function readJSON(filename){
-            return readFile(filename, 'utf8').then(function (res){
-              return JSON.parse(res)
-            })
-          }
-
-        p.
-          Since #[code JSON.parse] is just a function, we could re-write this as:
-
-        :js
-          function readJSON(filename){
-            return readFile(filename, 'utf8').then(JSON.parse);
-          }
-
-        p This is very close the the simple synchronous example we started out with.
-
-        h2#implementations Implementations / Downloads
-  
-        p.
-          There are a large number of Promises/A+ compatible implementations out there, not all of which have <code>.done</code> methods or <code>Promise.all</code> methods.  You should feel free to use whichever implementation best fits in with your needs.  Here are the two I would recommend.
-  
-        +implementation('promise', 3)
-
-        p You can find more implementations 
-          a(href='/implementations') here
+        function readJSON(filename, callback){
+          // If a callback is provided, call it with error as the first argument
+          // and result as the second argument, then return `undefined`.
+          // If no callback is provided, just return the promise.
+          return readFile(filename, 'utf8').then(JSON.parse).nodeify(callback);
+        }

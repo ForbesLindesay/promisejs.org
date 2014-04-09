@@ -1,19 +1,51 @@
 extends ./layout
 
 block content
-  .row-fluid
-    .span12
-      h1 Implementations
+  mixin implementation(name, headingLevel)
+    - var implementation = implementations[name]
 
-      p.
-        This page lists some of the more popular promise implementations.  Promise is my own, so it's first.
-        Q is my favourite of other people's, so it's second.  I haven't used the other implementations here
-        but they seem relatively popular.
+    | <h#{headingLevel} id='i-#{name}'>#{implementation.name}</h#{headingLevel}>
 
-      p
-        | The Promises/A+ maintains a complete list of implementations 
-        a(href='https://github.com/promises-aplus/promises-spec/blob/master/implementations.md') here
-        |  so look at that if you want a wider choice.
+    p= implementation.description
 
-      each imp, name in implementations
-        +implementation(name, 2)
+    p If you use node.js or browserify you can install it using npm:
+
+    pre
+      code.
+        npm install #{name}
+
+    p and then load it using require:
+
+    != js(implementation.require)
+
+    p
+      | If you are using any other module system or just want it directly in the browser, you can download a version with a standalone module defenition from 
+      a(href='/implementations/' + name + '/' + name + '-' + versions[name] + '.js') here
+      |  (with 
+      a(href='https://github.com/ForbesLindesay/umd') UMD
+      |  support) or add a script tag directly:
+
+    != html('<script src="http://www.promisejs.org/implementations/' + name + '/' + name + '-' + versions[name] + '.js"></script>')
+
+    p Once installed, you can create a new promise using:
+
+    != js(implementation.create)
+
+    p Full documentation can be found at 
+      a(href=implementation.home)= implementation.home
+
+  .container
+    h1 Implementations
+
+    p.
+      This page lists some of the more popular promise implementations.  Promise is my own, so it's first.
+      Q is my favourite of other people's, so it's second.  I haven't used the other implementations here
+      but they seem relatively popular.
+
+    p
+      | The Promises/A+ maintains a complete list of implementations 
+      a(href='https://github.com/promises-aplus/promises-spec/blob/master/implementations.md') here
+      |  so look at that if you want a wider choice.
+
+    each imp, name in implementations
+      +implementation(name, 2)

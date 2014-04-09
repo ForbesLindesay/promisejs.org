@@ -23,9 +23,12 @@ jade.settings('html', filters.html)
 app.use(express.favicon(__dirname + '/favicon.ico'))
 
 app.get('/', jade('./views/index.jade'))
+
 app.get('/implementations', jade('./views/implementations.jade'))
-app.get('/client/intro.js', browserify('./client/intro.js'))
 app.use('/implementations', require('./implementations/serve.js'))
+app.use('/polyfills', require('./polyfills'))
+
+app.get('/client/intro.js', browserify('./client/intro.js'))
 app.use('/style', less('./style/style.less'))
 
 app.listen(3000)

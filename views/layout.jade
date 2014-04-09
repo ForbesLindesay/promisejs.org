@@ -1,37 +1,4 @@
 doctype html
-mixin implementation(name, headingLevel)
-  - var implementation = implementations[name]
-
-  | <h#{headingLevel} id='i-#{name}'>#{implementation.name}</h#{headingLevel}>
-
-  p= implementation.description
-
-  p If you use node.js or browserify you can install it using npm:
-
-  pre
-    code.
-      npm install #{name}
-
-  p and then load it using require:
-
-  != js(implementation.require)
-
-  p
-    | If you are using any other module system or just want it directly in the browser, you can download a version with a standalone module defenition from 
-    a(href='/implementations/' + name + '/' + name + '-' + versions[name] + '.js') here
-    |  (with 
-    a(href='https://github.com/ForbesLindesay/umd') UMD
-    |  support) or add a script tag directly:
-
-  != html('<script src="http://www.promisejs.org/implementations/' + name + '/' + name + '-' + versions[name] + '.js"></script>')
-
-  p Once installed, you can create a new promise using:
-
-  != js(implementation.create)
-
-  p Full documentation can be found at 
-    a(href=implementation.home)= implementation.home
-
 html(lang='en')
   head
     meta(charset='utf8')
@@ -41,10 +8,8 @@ html(lang='en')
     #wrap
       .navbar.navbar-default.navbar-static-top
         .container
-          .navbar-header
-            a.navbar-brand(href='/') Promises
           ul.nav.navbar-nav
-            li: a(href='/') Home
+            li: a(href='/') Promises
             li: a(href='/implementations') Implementations
           ul.nav.navbar-nav.pull-right
             li: a(href='http://promisesaplus.com/') Spec
