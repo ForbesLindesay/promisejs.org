@@ -23,6 +23,8 @@ jade.settings('html', filters.html)
 app.use(express.favicon(__dirname + '/favicon.ico'))
 
 app.get('/', jade('./views/index.jade'))
+app.get('/combinators', jade('./views/combinators.jade'))
+app.get('/generators', jade('./views/generators.jade'))
 
 app.get('/implementations', jade('./views/implementations.jade'))
 app.use('/implementations', require('./implementations/serve.js'))
