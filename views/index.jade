@@ -37,7 +37,7 @@ block content
       li.
         The extra #[code callback] parameter confuses our idea of
         what is input and what is the return value.
-      li It doesn't work at all with controll flow primatives.
+      li It doesn't work at all with controll flow primitives.
       li It doesn't handle errors thrown by #[code JSON.parse]
 
     p.
@@ -232,6 +232,4 @@ block content
         function readJSON(filename, callback){
           // If a callback is provided, call it with error as the first argument
           // and result as the second argument, then return `undefined`.
-          // If no callback is provided, just return the promise.
-          return readFile(filename, 'utf8').then(JSON.parse).nodeify(callback);
-        }
+          // If no c
