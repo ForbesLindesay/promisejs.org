@@ -21,13 +21,13 @@
   "devDependencies": {
     "mocha": "*",
     "versionify": "*",
-    "stop": "*",
+    "stop": "~3.0.0-rc1",
     "rimraf": "*",
     "mandate": "*"
   },
   "scripts": {
     "prerelease": "versionify && rimraf out",
-    "release": "stop && mandate",
+    "release": "node stop && mandate",
     "postrelease": "rimraf out",
     "test": "mocha -R spec"
   },

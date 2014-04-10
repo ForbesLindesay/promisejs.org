@@ -1,7 +1,0 @@
-source="./server.js"
-destination="./out"
-
-[options]
-minify-js=false
-minify-css=true
-throttle=1
