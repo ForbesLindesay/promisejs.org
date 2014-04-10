@@ -457,8 +457,8 @@ function asap(task) {
 module.exports = asap;
 
 
-}).call(this,require("/Users/forbeslindesay/GitHub/promisejs.org/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
-},{"/Users/forbeslindesay/GitHub/promisejs.org/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":1}],5:[function(require,module,exports){
+}).call(this,require("C:\\Users\\forbes.lindesay\\Documents\\GitHub\\promisejs.org\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"))
+},{"C:\\Users\\forbes.lindesay\\Documents\\GitHub\\promisejs.org\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":1}],5:[function(require,module,exports){
 if (!Promise.prototype.done) {
   Promise.prototype.done = function (cb, eb) {
     this.then(cb, eb).then(null, function (err) {
