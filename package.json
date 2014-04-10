@@ -11,10 +11,6 @@
     "less": "~1.7.0",
     "transform": "~1.1.2",
     "promise": "4.0.0",
-    "q": "1.0.1",
-    "rsvp": "3.0.6",
-    "vow": "0.4.2",
-    "when": "3.0.1",
     "jquery": "^2.1.0",
     "twbs": "0.0.6",
     "browserify-middleware": "^2.5.0",
@@ -31,7 +27,7 @@
   },
   "scripts": {
     "prerelease": "versionify && rimraf out",
-    "release": "stop && node implementations/validate && mandate",
+    "release": "stop && mandate",
     "postrelease": "rimraf out",
     "test": "mocha -R spec"
   },
