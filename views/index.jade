@@ -8,11 +8,11 @@ block content
     h2#motivation Motivation
 
     p.
-      Consider the following synchronous code to read a file and parse
-      it as JSON. It is simple and easy to read, but you wouldn't want
-      to use it in most applications as it is blocking. This means that
-      while you are reading the file from disk (a slow operation) nothing
-      else can happen.
+      Consider the following synchronous JavaScript function to read a
+      file and parse it as JSON. It is simple and easy to read, but you
+      wouldn't want to use it in most applications as it is blocking.
+      This means that while you are reading the file from disk (a slow
+      operation) nothing else can happen.
 
     :js
       function readJSONSync(filename) {
