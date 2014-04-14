@@ -37,7 +37,7 @@ block content
       li.
         The extra #[code callback] parameter confuses our idea of
         what is input and what is the return value.
-      li It doesn't work at all with controll flow primitives.
+      li It doesn't work at all with control flow primitives.
       li It doesn't handle errors thrown by #[code JSON.parse]
 
     p.
@@ -73,7 +73,7 @@ block content
       three different states:
 
     ul
-      li pending - The initial state of a promise
+      li pending - The initial state of a promise.
       li fulfilled - The state of a promise representing a successful operation.
       li rejected - The state of a promise representing a failed operation.
 
@@ -85,7 +85,7 @@ block content
 
     p.
       Once all of the APIs return promises, it should be relatively rare
-      that you need to construct one by hand. In the mean time, we need
+      that you need to construct one by hand. In the meantime, we need
       a way to polyfill existing APIs.  For example:
 
     :js
@@ -142,7 +142,7 @@ block content
         p.
           Note that #[code promise.done] (used in the examples in
           this section) has not been standardised. It is supported by most
-          major promise libraries though, and is usefull both as a teaching
+          major promise libraries though, and is useful both as a teaching
           aid and in production code. I recommend using it along with the following polyfill (#[a(href="/polyfills/promise-done-1.0.0.js") link]):
 
         .small-code
@@ -155,7 +155,7 @@ block content
       the promise via another operation. In our case, this second operation
       is synchronous, but it might just as easilly have been an asynchronous
       operation. Fortunately, promises have a (fully standardised, see
-      warning re jQuery) method for transforming promises and chainging
+      warning re jQuery) method for transforming promises and chaining
       operations.
     p.
       Put simply, #[code .then] is to #[code .done] as
@@ -209,7 +209,7 @@ block content
 
     h3 Node.js
     
-    p It's generally not seen as good practise to polyfill things in node.js. Instead, you're better off just requiring the library wherever you need it.
+    p It's generally not seen as good practice to polyfill things in node.js. Instead, you're better off just requiring the library wherever you need it.
     
     p To install #[a(href="https://github.com/then/promise") promise] run:
 
