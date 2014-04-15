@@ -154,9 +154,9 @@ block content
       Following our example through, what we really want to do is transform
       the promise via another operation. In our case, this second operation
       is synchronous, but it might just as easilly have been an asynchronous
-      operation. Fortunately, promises have a (fully standardised, see
-      warning re jQuery) method for transforming promises and chaining
-      operations.
+      operation. Fortunately, promises have a (fully standardised,
+      #[a(href="#jquery") except jQuery]) method for transforming promises
+      and chaining operations.
     p.
       Put simply, #[code .then] is to #[code .done] as
       #[code .map] is to #[code .forEach]. To put that another way, use
@@ -188,7 +188,21 @@ block content
 
     p Promises are useful both in node.js and the browser
 
-    h3 Browser
+    h3#jquery jQuery
+
+    p.
+      This feels like a good time to warn you that what jQuery calls a promise is in fact totally different
+      to what everyone else calls a promise. jQuery's promises have a poorly thought out API that will likely just
+      confuse you. Fortunately, instead of using jQuery's strange version of a promise, you can just
+      convert it to a really simple standardised promise:
+
+    .small-code
+      :js
+        var jQueryPromise = $.ajax('/data.json');
+        var realPromise = Promise.resolve(jQueryPromise);
+        //now just use `realPromise` however you like.
+
+    h3#browser Browser
 
     p.
       Promises are currently only supported by a pretty small selection of browsers
@@ -207,7 +221,7 @@ block content
       :html
         <script src="https://www.promisejs.org/polyfills/promise-done-1.0.0.js"></script>
 
-    h3 Node.js
+    h3#node Node.js
     
     p It's generally not seen as good practice to polyfill things in node.js. Instead, you're better off just requiring the library wherever you need it.
     
