@@ -122,7 +122,7 @@ block content
         return new Promise(function (fulfill, reject){
           readFile(filename, 'utf8').done(function (res){
             try {
-              fullfill(JSON.parse(res));
+              fulfill(JSON.parse(res));
             } catch (ex) {
               reject(ex);
             }
