@@ -5,8 +5,8 @@
   "private": true,
   "description": "A website dedicated to promises in JavaScript",
   "dependencies": {
-    "browserify": "~3.38.1",
-    "express": "~3.5.1",
+    "browserify": "~3.44.0",
+    "express": "~4.0.0",
     "highlight.js": "~8.0.0",
     "less": "~1.7.0",
     "transform": "~1.1.2",
@@ -16,7 +16,8 @@
     "browserify-middleware": "^2.5.0",
     "booting-nav": "^1.0.1",
     "inconsolata": "0.0.2",
-    "less-file": "0.0.8"
+    "less-file": "0.0.8",
+    "static-favicon": "^1.0.2"
   },
   "devDependencies": {
     "mocha": "*",

@@ -25,7 +25,7 @@ function jade(path) {
   };
 }
 
-app.use(express.favicon(__dirname + '/favicon.ico'))
+app.use(require('static-favicon')(__dirname + '/favicon.ico'))
 
 app.get('/', jade('./index.jade'))
 app.get('/patterns', jade('./patterns.jade'))
