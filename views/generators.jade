@@ -127,7 +127,8 @@ block content
         return function () {
           var generator = makeGenerator.apply(this, arguments);
 
-          function handle(result){ // { done: [Boolean], value: [Object] }
+          function handle(result){
+            // result => { done: [Boolean], value: [Object] }
             if (result.done) return Promise.resolve(result.value);
 
             return Promise.resolve(result.value).then(function (res){
@@ -149,3 +150,34 @@ block content
       Note how we use #[code Promise.resolve] to ensure we are always dealing with well behaved
       promises and we use #[code Promise.reject] along with a try/catch block to ensure that
       synchronous errors are always converted into asynchronous errors.
+
+    h2#apendix Further Reading
+
+    ul
+      li
+        a(href="/https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*") MDN
+        |  - The mozilla developer network has great documentation on generators.
+      li
+        a(href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise") MDN
+        |  - The mozilla developer network has great documentation on promises.
+      li
+        a(href="http://facebook.github.io/regenerator/") regenerator
+        |  - A project by Facebook to add generator support to older environments by cross-compiling the code.
+      li
+        a(href="https://github.com/TooTallNate/gnode") gnode
+        |  - A command line applicaton to use regenerator to support generators in older versions of node.js
+      li
+        a(href="https://github.com/then/yield") then-yield
+        |  - A library that provides functions for writing code that uses promises with generators.
+      li
+        a(href="http://taskjs.org/") Task.js
+        |  - An alternative library for using promises with generators.
+      li
+        a(href="https://www.youtube.com/watch?v=qbKWsbJ76-s") YouTube
+        |  - A video of my JSConf.eu talk that discusses many of the same things as appear in this article.
+
+    p Please consider donating to the upkeep of this website via #[a(href="https://www.gittip.com/promisejs.org/") GitTip]
+
+    ul.pager
+      li.previous: a(href="/patterns")&larr; patterns
+      li.next: a(href="/implementing") implementing &rarr;

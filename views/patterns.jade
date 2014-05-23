@@ -55,7 +55,7 @@ block content
       });
 
     h2#reject Promise.reject
-    
+
     p.
       It's best to always avoid throwing synchronous exceptions in an asychronous method. Always
       returning a promise has the benefit that people can always handle all errors in the same
@@ -190,3 +190,23 @@ block content
 
     p.
       Whichever promise settles (fulfills or rejects) first wins the race, and determines the result.
+
+
+    h2#apendix Further Reading
+
+    ul
+      li
+        a(href="/generators") Generators
+        |  - learn how to use generators and promises together to make programming with promises really easy (in browsers with ES6 support)
+      li
+        a(href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise") MDN
+        |  - The mozilla developer network has great documentation on promises.
+      li
+        a(href="https://github.com/then/promise/blob/master/index.js") then/promise
+        |  - An implementation of all these helper methods in JavaScript.
+
+    p Please consider donating to the upkeep of this website via #[a(href="https://www.gittip.com/promisejs.org/") GitTip]
+
+    ul.pager
+      li.previous: a(href="/")&larr; introduction
+      li.next: a(href="/generators") generators &rarr;

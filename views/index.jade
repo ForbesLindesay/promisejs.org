@@ -211,7 +211,7 @@ block content
     .small-code(href="/polyfills/promise-" + versions.promise + ".js")
       :html
         <script src="https://www.promisejs.org/polyfills/promise-#{versions.promise}.js"></script>
-    
+
     p.
       None of the browsers currently support #[code Promise.prototype.done]
       so if you want to use that feature, and you are not including the
@@ -222,9 +222,9 @@ block content
         <script src="https://www.promisejs.org/polyfills/promise-done-1.0.0.js"></script>
 
     h3#node Node.js
-    
+
     p It's generally not seen as good practice to polyfill things in node.js. Instead, you're better off just requiring the library wherever you need it.
-    
+
     p To install #[a(href="https://github.com/then/promise") promise] run:
 
     .small-code
@@ -249,3 +249,22 @@ block content
           // If no callback is provided, just return the promise.
           return readFile(filename, 'utf8').then(JSON.parse).nodeify(callback);
         }
+
+    h2#apendix Further Reading
+
+    ul
+      li
+        a(href="/patterns") Patterns
+        |  - patterns of promise use, introducing lots of helper methods that will save you time.
+      li
+        a(href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise") MDN
+        |  - The mozilla developer network has great documentation on promises.
+      li
+        a(href="https://www.youtube.com/watch?v=qbKWsbJ76-s") YouTube
+        |  - A video of my JSConf.eu talk that discusses many of the same things as appear in this article.
+
+    p Please consider donating to the upkeep of this website via #[a(href="https://www.gittip.com/promisejs.org/") GitTip]
+
+    ul.pager
+      // li.previous: a(href="/")&larr; introduction
+      li.next: a(href="/patterns") patterns &rarr;
