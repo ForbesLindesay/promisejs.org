@@ -1,7 +1,7 @@
 {
   "name": "promisejs.org",
-  "version": "2.0.10",
-  "versionify": "2.0.10",
+  "version": "2.0.11",
+  "versionify": "2.0.11",
   "private": true,
   "description": "A website dedicated to promises in JavaScript",
   "dependencies": {
@@ -17,7 +17,8 @@
     "booting-nav": "^1.0.1",
     "inconsolata": "0.0.2",
     "less-file": "0.0.8",
-    "static-favicon": "^1.0.2"
+    "static-favicon": "^1.0.2",
+    "jade": "~1.3.1"
   },
   "devDependencies": {
     "mocha": "*",
