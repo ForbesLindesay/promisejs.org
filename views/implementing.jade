@@ -122,8 +122,8 @@ block content
        * @return {Function|Null}
        */
       function getThen(value) {
-        var t = typeof result;
-        if (result && (t === 'object' || t === 'function')) {
+        var t = typeof value;
+        if (value && (t === 'object' || t === 'function')) {
           var then = value.then;
           if (typeof then === 'function') {
             return then;
