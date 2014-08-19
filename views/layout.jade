@@ -20,8 +20,7 @@ html(lang='en')
       #push
     #footer-wrapper
       footer
-        .right
-          script(data-gittip-username="promisejs.org",src="https://www.gittip.com/assets/widgets/0002.js")
+        #gittip-widget.right(data-gittip-username="promisejs.org")
         p
           | Developed by&nbsp;
           a.jepso(href='http://www.forbeslindesay.co.uk') @ForbesLindesay
@@ -33,6 +32,7 @@ html(lang='en')
           | Can you make this better?  Please fork it on
           a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub
     block scripts
+    script(src="/gittip-widget/client.js")
     script.
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

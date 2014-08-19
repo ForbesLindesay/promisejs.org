@@ -1,6 +1,6 @@
 'use strict'
 
-var browserify = require('browserify-middleware')
+var fs = require('fs')
 var filters = require('jade').filters
 var highlight = require('highlight.js').highlight
 var less = require('less-file')
@@ -35,6 +35,11 @@ app.get('/implementing', jade('./implementing.jade'))
 app.use('/polyfills', require('./polyfills'))
 
 app.use('/style', less('./style/style.less'))
+app.get('/gittip-widget/client.js', function (req, res, next) {
+  var src = fs.readFileSync(__dirname + '/gittip-widget/client.js', 'utf8');
+  res.type('js');
+  res.send(src);
+});
 
 module.exports = app.listen(3000);
 console.log('listening on http://localhost:3000')
