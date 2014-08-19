@@ -13,24 +13,25 @@ html(lang='en')
             li: a(href='/patterns') Patterns
             li: a(href='/generators') Generators
             li: a(href='/implementing') Implementing
-          ul.nav.navbar-nav.pull-right
-            li: a(href='http://promisesaplus.com/') Spec
+          ul.nav.navbar-nav.navbar-right
+            li: a(href='http://promisesaplus.com/') Specification
       block content
         - throw new Error('Every page must have some content.')
       #push
     #footer-wrapper
       footer
-        #gittip-widget.right(data-gittip-username="promisejs.org")
-        p
-          | Developed by&nbsp;
-          a.jepso(href='http://www.forbeslindesay.co.uk') @ForbesLindesay
-        p
-          | All views expressed are my own and do not necessarily reflect the views of the&nbsp;
-          a.jepso(href='http://promisesaplus.com/') Promises/A+
-          |  organisation
-        p
-          | Can you make this better?  Please fork it on
-          a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub
+        .container
+          #gittip-widget.right(data-gittip-username="promisejs.org")
+          p
+            | Developed by&nbsp;
+            a.jepso(href='http://www.forbeslindesay.co.uk') @ForbesLindesay
+          p
+            | All views expressed are my own and do not necessarily reflect the views of the&nbsp;
+            a.jepso(href='http://promisesaplus.com/') Promises/A+
+            |  organisation
+          p
+            | Can you make this better?  Please fork it on
+            a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub
     block scripts
     script(src="/gittip-widget/client.js")
     script.
