@@ -1,8 +1,10 @@
 'use strict';
 
 var url = require('url');
+var fs = require('fs');
 var stop = require('stop');
 
+var promiseVersion = require('./package.json').dependencies.promise;
 var server = require('./server.js');
 
 stop.getWebsiteStream('http://localhost:3000', {
@@ -25,5 +27,17 @@ stop.getWebsiteStream('http://localhost:3000', {
 .syphon(stop.writeFileSystem(__dirname + '/out'))
 .wait().done(function () {
   server.close();
+
+  // todo: support source maps properly
+  copy('/polyfills/output/promise-' + promiseVersion + '.js.map',
+       '/out/polyfills/promise-' + promiseVersion + '.js.map');
+  copy('/polyfills/output/promise-' + promiseVersion + '.min.js.map',
+       '/out/polyfills/promise-' + promiseVersion + '.min.js.map');
+  copy('/polyfills/output/promise-done-' + promiseVersion + '.min.js.map',
+       '/out/polyfills/promise-done-' + promiseVersion + '.min.js.map');
+  function copy(src, dest) {
+    fs.writeFileSync(__dirname + dest, fs.readFileSync(__dirname + src));
+  }
+
   console.log('success');
 });
