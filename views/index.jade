@@ -143,11 +143,11 @@ block content
           Note that #[code promise.done] (used in the examples in
           this section) has not been standardised. It is supported by most
           major promise libraries though, and is useful both as a teaching
-          aid and in production code. I recommend using it along with the following polyfill (#[a(href="/polyfills/promise-done-1.0.0.js") link]):
+          aid and in production code. I recommend using it along with the following polyfill (#[a(href="/polyfills/promise-done-" + versions.promise + ".min.js") minified] / #[a(href="/polyfills/promise-done-" + versions.promise + ".js") unminified]):
 
         .small-code
           :html
-            <script src="https://www.promisejs.org/polyfills/promise-done-1.0.0.js"></script>
+            <script src="https://www.promisejs.org/polyfills/promise-done-#{versions.promise}.min.js"></script>
     h2#then Transformation / Chaining
 
     p.
@@ -207,19 +207,19 @@ block content
     p.
       Promises are currently only supported by a pretty small selection of browsers
       (#[a(href="http://kangax.github.io/es5-compat-table/es6/#Promise") see kangax compatability tables]).
-      The good news is that they're extremely easy to polyfill (#[a(href="/polyfills/promise-" + versions.promise + ".js") link]):
-    .small-code(href="/polyfills/promise-" + versions.promise + ".js")
+      The good news is that they're extremely easy to polyfill (#[a(href="/polyfills/promise-" + versions.promise + ".min.js") minified] / #[a(href="/polyfills/promise-" + versions.promise + ".js") unminified]):
+    .small-code
       :html
-        <script src="https://www.promisejs.org/polyfills/promise-#{versions.promise}.js"></script>
+        <script src="https://www.promisejs.org/polyfills/promise-#{versions.promise}.min.js"></script>
 
     p.
       None of the browsers currently support #[code Promise.prototype.done]
       so if you want to use that feature, and you are not including the
-      polyfill above, you must at least include this polyfill (#[a(href="/polyfills/promise-done-1.0.0.js") link]):
+      polyfill above, you must at least include this polyfill (#[a(href="/polyfills/promise-done-" + versions.promise + ".min.js") minified] / #[a(href="/polyfills/promise-done-" + versions.promise + ".js") unminified]):
 
     .small-code
       :html
-        <script src="https://www.promisejs.org/polyfills/promise-done-1.0.0.js"></script>
+        <script src="https://www.promisejs.org/polyfills/promise-done-#{versions.promise}.min.js"></script>
 
     h3#node Node.js
 

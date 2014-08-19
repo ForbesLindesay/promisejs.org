@@ -1,29 +1,22 @@
 'use strict';
 
-var fs = require('fs');
-var browserify = require('browserify');
+var assert = require('assert');
+var Promise = require('promise');
 var express = require('express');
+var compile = require('./compile-to-cdn.js');
 var version = require('../package.json').dependencies.promise;
+var actualVersion = require('promise/package.json').version;
+assert(version === actualVersion);
 
 var app = express();
 
-var read = fs.createReadStream;
-var write = fs.createWriteStream;
+var compiledPromise = compile.fromNode(require.resolve('./polyfill.js'), '/polyfills/promise-' + version + '.js', __dirname + '/output/promise-' + version + '.js');
+var compiledPromiseDone = compile.fromFile(require.resolve('./polyfill-done.js'), '/polyfills/promise-done-' + version + '.js', __dirname + '/output/promise-done-' + version + '.js');
+var compiled = Promise.all([compiledPromise, compiledPromiseDone]);
 
-var remaining = 2;
-browserify(require.resolve('./polyfill.js')).bundle().pipe(write(__dirname + '/output/promise-' + version + '.js')).on('close', function () {
-  remaining--;
-});
-read(require.resolve('./polyfill-done.js')).pipe(write(__dirname + '/output/promise-done-1.0.0.js')).on('close', function () {
-  remaining--;
-});
-
+compiled.done();
 app.use(function (req, res, next) {
-  function ready() {
-    if (remaining === 0) return next();
-    else setTimeout(ready, 100);
-  }
-  ready();
+  return compiled.nodeify(next);
 });
 app.use('/', express.static(__dirname + '/output'))
 

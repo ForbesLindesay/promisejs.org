@@ -1,6 +1,8 @@
 if (!Promise.prototype.done) {
   Promise.prototype.done = function (cb, eb) {
-    this.then(cb, eb).then(null, function (err) {
+    var promise = (typeof cb === 'function' || typeof eb === 'function') ?
+        this.then(cb, eb) : this;
+    promise.then(null, function (err) {
       setTimeout(function () {
         throw err;
       }, 0);
