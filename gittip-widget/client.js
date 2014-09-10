@@ -1,7 +1,7 @@
 (function(_) {
   var container = document.getElementById('gittip-widget');
   var username = container.getAttribute('data-gittip-username');
-  var baseURI  = 'https://www.gittip.com';
+  var baseURI  = 'https://gratipay.com';
   var widget, receiving, number;
 
   // set up widget
@@ -13,7 +13,7 @@
           [ 'b', '$', receiving = _.ml(['span', '#.##'])] , ' / wk'
         ],
         ['br'],
-        ' on ', ['a', { href: baseURI }, 'Gittip' ], '.'
+        ' on ', ['a', { href: baseURI }, 'Gratipay' ], '.'
       ]
     ]
   ));
