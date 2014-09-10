@@ -10,8 +10,8 @@ assert(version === actualVersion);
 
 var app = express();
 
-var compiledPromise = compile.fromNode(require.resolve('./polyfill.js'), '/polyfills/promise-' + version + '.js', __dirname + '/output/promise-' + version + '.js');
-var compiledPromiseDone = compile.fromFile(require.resolve('./polyfill-done.js'), '/polyfills/promise-done-' + version + '.js', __dirname + '/output/promise-done-' + version + '.js');
+var compiledPromise = compile.fromNode(require.resolve('promise/polyfill'), '/polyfills/promise-' + version + '.js', __dirname + '/output/promise-' + version + '.js');
+var compiledPromiseDone = compile.fromFile(require.resolve('promise/polyfill-done.js'), '/polyfills/promise-done-' + version + '.js', __dirname + '/output/promise-done-' + version + '.js');
 var compiled = Promise.all([compiledPromise, compiledPromiseDone]);
 
 compiled.done();

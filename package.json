@@ -16,7 +16,7 @@
     "jquery": "^2.1.1",
     "less": "~1.7.4",
     "less-file": "0.0.9",
-    "promise": "5.0.0",
+    "promise": "6.0.0",
     "static-favicon": "^1.0.2",
     "transform": "~1.1.2",
     "twbs": "0.0.6",
