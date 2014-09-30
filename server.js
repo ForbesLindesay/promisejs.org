@@ -14,6 +14,8 @@ filters.html = function (src, options) {
   return '<pre><code>' + highlight('xml', src).value + '</code></pre>'
 }
 
+var staticFiles = app.locals.staticFiles = '/static/' + require('./package.json').version;
+
 app.set('views', __dirname + '/views');
 function jade(path) {
   return function (req, res) {
@@ -34,8 +36,8 @@ app.get('/implementing', jade('./implementing.jade'))
 
 app.use('/polyfills', require('./polyfills'))
 
-app.use('/style', less('./style/style.less'))
-app.get('/gittip-widget/client.js', function (req, res, next) {
+app.use(staticFiles + '/style', less('./style/style.less'))
+app.get(staticFiles + '/gittip-widget/client.js', function (req, res, next) {
   var src = fs.readFileSync(__dirname + '/gittip-widget/client.js', 'utf8');
   res.type('js');
   res.send(src);

@@ -3,7 +3,7 @@ html(lang='en')
   head
     meta(charset='utf8')
     title Promises
-    link(href='/style/bundle.css', rel='stylesheet')
+    link(href=staticFiles + '/style/bundle.css', rel='stylesheet')
   body
     #wrap
       .navbar.navbar-default.navbar-static-top
@@ -33,7 +33,7 @@ html(lang='en')
             | Can you make this better?  Please fork it on
             a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub
     block scripts
-    script(src="/gittip-widget/client.js")
+    script(src=staticFiles + "/gittip-widget/client.js")
     script.
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
