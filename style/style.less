@@ -27,7 +27,6 @@ h1 { font-size: 80px; font-weight: bold; letter-spacing: -1px; line-height: 1; t
   h1 { font-size: 40px; }
 }
 
-
 /* Sticky footer styles */
 html, body { height: 100%; /* The html and body elements cannot have any padding or margin. */ }
 
@@ -64,6 +63,9 @@ pre {
 }
 
 pre code {
+  white-space: pre;
+  word-break: normal;
+  word-wrap: normal;
   font-size: 1.8em;
   font-smooth:always;
   -webkit-font-smoothing: antialiased;
@@ -80,4 +82,18 @@ pre {
 }
 .no-link, .no-link:hover {
   text-decoration: none;
+}
+
+@media (max-width: @screen-md-max) {
+  pre code {
+    font-size: 1.2em;
+  }
+  .small-code pre code {
+    font-size: 1em;
+  }
+}
+@media (max-width: @screen-sm-max) {
+  pre code {
+    font-size: 1em;
+  }
 }
