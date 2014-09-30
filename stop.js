@@ -3,6 +3,7 @@
 var url = require('url');
 var fs = require('fs');
 var stop = require('stop');
+var CleanCSS = require('clean-css');
 
 var promiseVersion = require('./package.json').dependencies.promise;
 var server = require('./server.js');
@@ -21,6 +22,9 @@ stop.getWebsiteStream('http://localhost:3000', {
   } else if (page.statusCode !== 200) {
     throw new Error('Unexpected status code ' + page.statusCode +
                     ' for ' + page.url);
+  }
+  if (page.headers['content-type'] === 'text/css') {
+    page.body = new Buffer(new CleanCSS().minify(page.body.toString('utf8')));
   }
   console.log(page.statusCode + ' - ' + page.url);
 })
