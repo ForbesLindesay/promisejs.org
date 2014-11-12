@@ -2,7 +2,7 @@
   var container = document.getElementById('gittip-widget');
   var username = container.getAttribute('data-gittip-username');
   var baseURI  = 'https://gratipay.com';
-  var widget, receiving, number;
+  var receiving, number;
 
   // set up widget
   container.appendChild(_.ml(

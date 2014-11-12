@@ -3,10 +3,10 @@
 var url = require('url');
 var fs = require('fs');
 var stop = require('stop');
-var CleanCSS = require('clean-css');
 
 var promiseVersion = require('./package.json').dependencies.promise;
 var server = require('./server.js');
+
 
 stop.getWebsiteStream('http://localhost:3000', {
   filter: function (currentURL) {
@@ -15,19 +15,14 @@ stop.getWebsiteStream('http://localhost:3000', {
   parallel: 1
 })
 .syphon(stop.addFavicon())
+.syphon(stop.minifyJS({filter: function (url) {
+  console.dir(url);
+  return url.indexOf('static') !== -1;
+}}))
+.syphon(stop.minifyCSS({deadCode: true, ignore: ['gittip'], silent: true}))
 .syphon(stop.addManifest('/app.manifest', {addLinks: true}))
-.on('data', function (page) {
-  if (page.url === 'http://localhost:3000/style/files/3/glyphicons-halflings-regular.eot?' && page.statusCode === 404) {
-    //todo: fix this
-  } else if (page.statusCode !== 200) {
-    throw new Error('Unexpected status code ' + page.statusCode +
-                    ' for ' + page.url);
-  }
-  if (page.headers['content-type'] === 'text/css') {
-    page.body = new Buffer(new CleanCSS().minify(page.body.toString('utf8')));
-  }
-  console.log(page.statusCode + ' - ' + page.url);
-})
+.syphon(stop.log())
+.syphon(stop.checkStatusCodes([200]))
 .syphon(stop.writeFileSystem(__dirname + '/out'))
 .wait().done(function () {
   server.close();

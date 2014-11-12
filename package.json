@@ -1,14 +1,13 @@
 {
   "name": "promisejs.org",
-  "version": "3.0.8",
-  "versionify": "3.0.8",
+  "version": "3.0.9",
+  "versionify": "3.0.9",
   "private": true,
   "description": "A website dedicated to promises in JavaScript",
   "dependencies": {
     "booting-nav": "^1.0.1",
     "browserify": "~5.9.1",
     "browserify-middleware": "^3.0.1",
-    "clean-css": "^2.2.16",
     "convert-source-map": "^0.4.1",
     "express": "~4.7.2",
     "highlight.js": "~8.1.0",
@@ -24,11 +23,11 @@
     "uglify-js": "^2.4.15"
   },
   "devDependencies": {
+    "mandate": "*",
     "mocha": "*",
-    "versionify": "*",
-    "stop": "~3.0.0-rc1",
     "rimraf": "*",
-    "mandate": "*"
+    "stop": "^3.0.1",
+    "versionify": "*"
   },
   "scripts": {
     "prerelease": "versionify && rimraf out",
