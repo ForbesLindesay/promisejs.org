@@ -4,16 +4,19 @@ html(lang='en')
     meta(charset='utf8')
     title Promises
     link(href=staticFiles + '/style/bundle.css', rel='stylesheet')
+    meta(name="viewport" content="width=device-width, minimal-ui")
   body
     #wrap
       .navbar.navbar-default.navbar-static-top
         .container
           ul.nav.navbar-nav
-            li: a(href='/') Promises
-            li: a(href='/patterns/') Patterns
-            li: a(href='/generators/') Generators
-            li: a(href='/implementing/') Implementing
-          ul.nav.navbar-nav.navbar-right
+            mixin navlink(path, name)
+              li(class={active: path === activePath}): a(href=path)= name
+            +navlink('/', 'Promises')
+            +navlink('/patterns/', 'Patterns')
+            +navlink('/generators/', 'Generators')
+            +navlink('/implementing/', 'Implementing')
+          ul.nav.navbar-nav.navbar-right.specification
             li: a(href='http://promisesaplus.com/') Specification
       block content
         - throw new Error('Every page must have some content.')
@@ -23,12 +26,13 @@ html(lang='en')
         .container
           #gittip-widget.right(data-gittip-username="promisejs.org")
           p
+            | Please consult
+            = ' '
+            a.jepso(href='http://promisesaplus.com/') The Official Promises/A+ Specificaiton
+            |  for official info on promises.
+          p
             | Developed by&nbsp;
             a.jepso(href='http://www.forbeslindesay.co.uk') @ForbesLindesay
-          p
-            | All views expressed are my own and do not necessarily reflect the views of the&nbsp;
-            a.jepso(href='http://promisesaplus.com/') Promises/A+
-            |  organisation
           p
             | Can you make this better?  Please fork it on
             a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub

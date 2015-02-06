@@ -17,22 +17,21 @@ filters.html = function (src, options) {
 var staticFiles = app.locals.staticFiles = '/static/' + require('./package.json').version;
 
 app.set('views', __dirname + '/views');
-function jade(path) {
+function jade(path, locals) {
   return function (req, res) {
-    res.render(path, {
-      versions: require('./package.json').dependencies,
-      js: filters.js,
-      html: filters.html
-    });
+    locals.versions = require('./package.json').dependencies;
+    locals.js = filters.js;
+    locals.html =filters.html;
+    res.render(path, locals);
   };
 }
 
 app.use(require('static-favicon')(__dirname + '/favicon.ico'))
 
-app.get('/', jade('./index.jade'))
-app.get('/patterns', jade('./patterns.jade'))
-app.get('/generators', jade('./generators.jade'))
-app.get('/implementing', jade('./implementing.jade'))
+app.get('/', jade('./index.jade', {activePath: '/'}))
+app.get('/patterns', jade('./patterns.jade', {activePath: '/patterns/'}))
+app.get('/generators', jade('./generators.jade', {activePath: '/generators/'}))
+app.get('/implementing', jade('./implementing.jade', {activePath: '/implementing/'}))
 
 app.use('/polyfills', require('./polyfills'))
 
