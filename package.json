@@ -13,7 +13,7 @@
     "jade": "~1.9.2",
     "less": "~1.7.4",
     "less-file": "0.0.9",
-    "promise": "6.1.0",
+    "promise": "7.0.1",
     "static-favicon": "^1.0.2",
     "twbs": "0.0.6",
     "uglify-js": "^2.4.15"

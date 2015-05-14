@@ -13,6 +13,8 @@ html(lang='en')
             mixin navlink(path, name)
               li(class={active: path === activePath}): a(href=path)= name
             +navlink('/', 'Promises')
+            li(class={active: '/api/' === activePath}): a(href='/api/')
+              | API #[span.hidden-xs.hidden-sm.hidden-md Reference]
             +navlink('/patterns/', 'Patterns')
             +navlink('/generators/', 'Generators')
             +navlink('/implementing/', 'Implementing')
@@ -39,6 +41,7 @@ html(lang='en')
             a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub
     block scripts
     script(async src=staticFiles + "/gittip-widget/client.js")
+    script(async src=staticFiles + "/show-polyfill/client.js")
     script.
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),

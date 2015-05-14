@@ -19,7 +19,7 @@
   ));
 
   // display current receiving value
-  _.json(baseURI + '/' + username + '/public.json', function(data) {
+  _.json(baseURI + '/~' + username + '/public.json', function(data) {
     receiving.innerHTML = data.receiving;
     number.innerHTML = data.number === 'singular' ? 'I' : 'We';
   });
