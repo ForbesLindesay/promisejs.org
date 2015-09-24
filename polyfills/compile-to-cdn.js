@@ -31,7 +31,7 @@ function output(str, location, filename, minify) {
   return stat(filename).then(function () {
     console.log('Not re-building ' + location + ' as it already exists.');
   }, function () {
-    var sourceMaps = /\/\/[#@] ?sourceMappingURL=data:application\/json;base64,([a-zA-Z0-9+\/]+)={0,2}$/m.exec(str);
+    var sourceMaps = /\/\/[#@] ?sourceMappingURL=data:application\/json;(?:charset:utf-8;)?base64,([a-zA-Z0-9+\/]+)={0,2}$/m.exec(str);
 
     if (!minify && !sourceMaps) {
       return write(filename, str);
