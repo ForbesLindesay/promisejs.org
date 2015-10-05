@@ -92,12 +92,15 @@ block content
         filenames.forEach(function (filename, index) {
           readJSON(filename, function (err, res) {
             if (err) {
-              if (!called) callback(err);
+              if (!called) {
+                called = true;
+                callback(err);
+              }
               return;
             }
             results[index] = res;
             if (0 === --pending) {
-              callback(null, res);
+              callback(null, results);
             }
           });
         });
