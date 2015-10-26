@@ -7,16 +7,17 @@
   "dependencies": {
     "booting-nav": "^1.0.1",
     "browserify": "^11.2.0",
-    "convert-source-map": "^0.4.1",
-    "express": "~4.11.2",
-    "highlight.js": "~8.4.0",
+    "convert-source-map": "^1.1.1",
+    "express": "^5.0.0-alpha.2",
+    "highlight.js": "^8.9.1",
     "jade": "^1.11.0",
-    "less": "~1.7.4",
+    "jquery": "^2.1.4",
+    "less": "^2.5.3",
     "less-file": "0.0.9",
-    "promise": "7.0.4",
-    "static-favicon": "^1.0.2",
+    "promise": "^7.0.4",
+    "static-favicon": "^2.0.0-alpha",
     "twbs": "0.0.6",
-    "uglify-js": "^2.4.24"
+    "uglify-js": "^2.5.0"
   },
   "devDependencies": {
     "mandate": "*",
