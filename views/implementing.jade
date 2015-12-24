@@ -57,11 +57,17 @@ block content
         function fulfill(result) {
           state = FULFILLED;
           value = result;
+          
+          handlers.forEach(handle);
+          handlers = null;
         }
 
         function reject(error) {
           state = REJECTED;
           value = error;
+          
+          handlers.forEach(handle);
+          handlers = null;
         }
       }
 
@@ -87,11 +93,17 @@ block content
         function fulfill(result) {
           state = FULFILLED;
           value = result;
+          
+          handlers.forEach(handle);
+          handlers = null;
         }
 
         function reject(error) {
           state = REJECTED;
           value = error;
+          
+          handlers.forEach(handle);
+          handlers = null;
         }
 
         function resolve(result) {
