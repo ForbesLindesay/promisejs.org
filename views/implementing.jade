@@ -270,7 +270,7 @@ block content
 
         // runs handlers and resets queue
         handlers.forEach(handle);
-        handlers = null;
+        handlers = [];
       }
 
       function reject(error) {
@@ -279,7 +279,7 @@ block content
 
         // runs handlers and resets queue
         handlers.forEach(handle);
-        handlers = null;
+        handlers = [];
       }
 
     h2#then Observing (via .then)
