@@ -248,7 +248,6 @@ block content
         }
       }
 
-      // set fulfill/reject callbacks
       this.done = function (onFulfilled, onRejected) {
         // ensure we are always asynchronous
         setTimeout(function () {
@@ -316,8 +315,7 @@ block content
         });
       }
 
-    p.
-      Finally, the whole implementation.
+    h2#allcode The whole implementation
 
     :js
       var PENDING = 0;
@@ -337,6 +335,8 @@ block content
         function fulfill(result) {
           state = FULFILLED;
           value = result;
+
+          // runs handlers and resets queue
           handlers.forEach(handle);
           handlers = null;
         }
@@ -344,6 +344,8 @@ block content
         function reject(error) {
           state = REJECTED;
           value = error;
+
+          // runs handlers and resets queue
           handlers.forEach(handle);
           handlers = null;
         }
@@ -361,6 +363,7 @@ block content
           }
         }
 
+        // manages handlers according to Promise state
         function handle(handler) {
           if (state === PENDING) {
             handlers.push(handler);
