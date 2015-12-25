@@ -154,10 +154,10 @@ block content
             done = true
             onRejected(reason)
           })
-        } catch (ex) {
+        } catch (e) {
           if (done) return
           done = true
-          onRejected(ex)
+          onRejected(e)
         }
       }
 
@@ -232,6 +232,92 @@ block content
       li it is called regardless of whether the promise is resolved before or after we call #[code .done]
 
     :js
+      // manages handlers according to Promise state
+      function handle(handler) {
+        if (state === PENDING) {
+          handlers.push(handler);
+        } else {
+          if (state === FULFILLED &&
+            typeof handler.onFulfilled === 'function') {
+            handler.onFulfilled(value);
+          }
+          if (state === REJECTED &&
+            typeof handler.onRejected === 'function') {
+            handler.onRejected(value);
+          }
+        }
+      }
+
+      this.done = function (onFulfilled, onRejected) {
+        // ensure we are always asynchronous
+        setTimeout(function () {
+          handle({
+            onFulfilled: onFulfilled,
+            onRejected: onRejected
+          });
+        }, 0);
+      }
+
+    p.
+      We make sure to notify the handlers when the Promise is resolved or rejected.
+      We only ever do this in the next tick by removes them from the queue.
+
+    :js
+      function fulfill(result) {
+        state = FULFILLED;
+        value = result;
+
+        // runs handlers and resets queue
+        handlers.forEach(handle);
+        handlers = [];
+      }
+
+      function reject(error) {
+        state = REJECTED;
+        value = error;
+
+        // runs handlers and resets queue
+        handlers.forEach(handle);
+        handlers = [];
+      }
+
+    h2#then Observing (via .then)
+
+    p.
+      Now that we have #[code .done] implemented, we can easily implement #[code .then] to
+      just do the same thing, but construct a new Promise in the process.
+
+    :js
+      this.then = function (onFulfilled, onRejected) {
+        var self = this;
+        return new Promise(function (resolve, reject) {
+          return self.done(function (result) {
+            if (typeof onFulfilled === 'function') {
+              try {
+                return resolve(onFulfilled(result));
+              } catch (e) {
+                return reject(e);
+              }
+            } else {
+              return resolve(result);
+            }
+          }, function (error) {
+            if (typeof onRejected === 'function') {
+              try {
+                return resolve(onRejected(error));
+              } catch (e) {
+                return reject(e);
+              }
+            } else {
+              return reject(error);
+            }
+          });
+        });
+      }
+
+    h2#allcode The whole implementation
+
+    :js
       var PENDING = 0;
       var FULFILLED = 1;
       var REJECTED = 2;
@@ -249,6 +335,8 @@ block content
         function fulfill(result) {
           state = FULFILLED;
           value = result;
+
+          // runs handlers and resets queue
           handlers.forEach(handle);
           handlers = null;
         }
@@ -256,6 +344,8 @@ block content
         function reject(error) {
           state = REJECTED;
           value = error;
+
+          // runs handlers and resets queue
           handlers.forEach(handle);
           handlers = null;
         }
@@ -273,6 +363,7 @@ block content
           }
         }
 
+        // manages handlers according to Promise state
         function handle(handler) {
           if (state === PENDING) {
             handlers.push(handler);
@@ -298,45 +389,34 @@ block content
           }, 0);
         }
 
-        doResolve(fn, resolve, reject);
-      }
-
-    p.
-      We make sure to notify the handlers when the Promise is resolved or rejected.
-      We only ever do this in the next tick.
-
-    h2#then Observing (via .then)
-
-    p.
-      Now that we have #[code .done] implemented, we can easily implement #[code .then] to
-      just do the same thing, but construct a new Promise in the process.
-
-    :js
-      this.then = function (onFulfilled, onRejected) {
-        var self = this;
-        return new Promise(function (resolve, reject) {
-          return self.done(function (result) {
-            if (typeof onFulfilled === 'function') {
-              try {
-                return resolve(onFulfilled(result));
-              } catch (ex) {
-                return reject(ex);
+        this.then = function (onFulfilled, onRejected) {
+          var self = this;
+          return new Promise(function (resolve, reject) {
+            return self.done(function (result) {
+              if (typeof onFulfilled === 'function') {
+                try {
+                  return resolve(onFulfilled(result));
+                } catch (e) {
+                  return reject(e);
+                }
+              } else {
+                return resolve(result);
               }
-            } else {
-              return resolve(result);
-            }
-          }, function (error) {
-            if (typeof onRejected === 'function') {
-              try {
-                return resolve(onRejected(error));
-              } catch (ex) {
-                return reject(ex);
+            }, function (error) {
+              if (typeof onRejected === 'function') {
+                try {
+                  return resolve(onRejected(error));
+                } catch (e) {
+                  return reject(e);
+                }
+              } else {
+                return reject(error);
               }
-            } else {
-              return reject(error);
-            }
+            });
           });
-        });
+        }
+
+        doResolve(fn, resolve, reject);
       }
 
     h2#apendix Further Reading
