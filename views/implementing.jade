@@ -232,78 +232,55 @@ block content
       li it is called regardless of whether the promise is resolved before or after we call #[code .done]
 
     :js
-      var PENDING = 0;
-      var FULFILLED = 1;
-      var REJECTED = 2;
-
-      function Promise(fn) {
-        // store state which can be PENDING, FULFILLED or REJECTED
-        var state = PENDING;
-
-        // store value once FULFILLED or REJECTED
-        var value = null;
-
-        // store sucess & failure handlers
-        var handlers = [];
-
-        function fulfill(result) {
-          state = FULFILLED;
-          value = result;
-          handlers.forEach(handle);
-          handlers = null;
-        }
-
-        function reject(error) {
-          state = REJECTED;
-          value = error;
-          handlers.forEach(handle);
-          handlers = null;
-        }
-
-        function resolve(result) {
-          try {
-            var then = getThen(result);
-            if (then) {
-              doResolve(then.bind(result), resolve, reject)
-              return
-            }
-            fulfill(result);
-          } catch (e) {
-            reject(e);
+      // manages handlers according to Promise state
+      function handle(handler) {
+        if (state === PENDING) {
+          handlers.push(handler);
+        } else {
+          if (state === FULFILLED &&
+            typeof handler.onFulfilled === 'function') {
+            handler.onFulfilled(value);
+          }
+          if (state === REJECTED &&
+            typeof handler.onRejected === 'function') {
+            handler.onRejected(value);
           }
         }
+      }
 
-        function handle(handler) {
-          if (state === PENDING) {
-            handlers.push(handler);
-          } else {
-            if (state === FULFILLED &&
-              typeof handler.onFulfilled === 'function') {
-              handler.onFulfilled(value);
-            }
-            if (state === REJECTED &&
-              typeof handler.onRejected === 'function') {
-              handler.onRejected(value);
-            }
-          }
-        }
-
-        this.done = function (onFulfilled, onRejected) {
-          // ensure we are always asynchronous
-          setTimeout(function () {
-            handle({
-              onFulfilled: onFulfilled,
-              onRejected: onRejected
-            });
-          }, 0);
-        }
-
-        doResolve(fn, resolve, reject);
+      // set fulfill/reject callbacks
+      this.done = function (onFulfilled, onRejected) {
+        // ensure we are always asynchronous
+        setTimeout(function () {
+          handle({
+            onFulfilled: onFulfilled,
+            onRejected: onRejected
+          });
+        }, 0);
       }
 
     p.
       We make sure to notify the handlers when the Promise is resolved or rejected.
-      We only ever do this in the next tick.
+      We only ever do this in the next tick by removes them from the queue.
+
+    :js
+      function fulfill(result) {
+        state = FULFILLED;
+        value = result;
+
+        // runs handlers and resets queue
+        handlers.forEach(handle);
+        handlers = null;
+      }
+
+      function reject(error) {
+        state = REJECTED;
+        value = error;
+
+        // runs handlers and resets queue
+        handlers.forEach(handle);
+        handlers = null;
+      }
 
     h2#then Observing (via .then)
 
