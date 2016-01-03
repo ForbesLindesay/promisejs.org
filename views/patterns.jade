@@ -133,11 +133,11 @@ block content
         var accumulator = [];
         var ready = Promise.resolve(null);
 
-        promises.forEach(function (promise, ndx) {
+        promises.forEach(function (promise) {
           ready = ready.then(function () {
             return promise;
           }).then(function (value) {
-            accumulator[ndx] = value;
+            accumulator.push(value);
           });
         });
 
