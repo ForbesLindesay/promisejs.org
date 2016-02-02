@@ -2,13 +2,13 @@
   var container = document.getElementById('gittip-widget');
   var username = container.getAttribute('data-gittip-username');
   var baseURI  = 'https://gratipay.com';
-  var receiving, number;
+  var receiving;
 
   // set up widget
   container.appendChild(_.ml(
     ['div', { 'class': 'gittip-widget gittip-0002' },
       [ 'div', { 'class': 'gittip-inner' },
-        number = _.ml(['span', 'We']), ' receive ', ['br'],
+        'We receive ', ['br'],
         ['a', { href: baseURI + '/' + username + '/' },
           [ 'b', '$', receiving = _.ml(['span', '#.##'])] , ' / wk'
         ],
@@ -20,8 +20,7 @@
 
   // display current receiving value
   _.json(baseURI + '/~' + username + '/public.json', function(data) {
-    receiving.innerHTML = data.receiving;
-    number.innerHTML = data.number === 'singular' ? 'I' : 'We';
+    receiving.textContent = data.taking;
   });
 })({
   ml: function(jsonml) {

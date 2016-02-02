@@ -1,5 +1,5 @@
 doctype html
-html(lang='en')
+html(lang=(locale && translated) ? locale: 'en')
   head
     meta(charset='utf8')
     title Promises
@@ -15,11 +15,11 @@ html(lang='en')
             +navlink('/', 'Promises')
             li(class={active: '/api/' === activePath}): a(href='/api/')
               | API #[span.hidden-xs.hidden-sm.hidden-md Reference]
-            +navlink('/patterns/', 'Patterns')
-            +navlink('/generators/', 'Generators')
-            +navlink('/implementing/', 'Implementing')
+            +navlink('/patterns/', read('/strings/patterns.txt'))
+            +navlink('/generators/', read('/strings/generators.txt'))
+            +navlink('/implementing/', read('/strings/implementing.txt'))
           ul.nav.navbar-nav.navbar-right.specification
-            li: a(href='http://promisesaplus.com/') Specification
+            li: a(href='http://promisesaplus.com/')= read('/strings/specification.txt')
       block content
         - throw new Error('Every page must have some content.')
       #push
