@@ -26,12 +26,6 @@ html(lang=(locale && translated) ? locale: 'en')
     #footer-wrapper
       footer
         .container
-          #gittip-widget.right(data-gittip-username="promisejs.org")
-          p
-            | Please consult
-            = ' '
-            a.jepso(href='http://promisesaplus.com/') The Official Promises/A+ Specification
-            |  for official info on promises.
           p
             | Developed by&nbsp;
             a.jepso(href='http://www.forbeslindesay.co.uk') @ForbesLindesay
@@ -40,7 +34,6 @@ html(lang=(locale && translated) ? locale: 'en')
             = ' '
             a.jepso(href='https://github.com/ForbesLindesay/promisejs.org') GitHub
     block scripts
-    script(async src=staticFiles + "/gittip-widget/client.js")
     script(async src=staticFiles + "/show-polyfill/client.js")
     script.
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){

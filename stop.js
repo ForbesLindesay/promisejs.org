@@ -19,7 +19,7 @@ stop.getWebsiteStream('http://localhost:3000', {
   console.dir(url);
   return url.indexOf('static') !== -1;
 }}))
-.syphon(stop.minifyCSS({deadCode: true, ignore: ['gittip'], silent: true}))
+.syphon(stop.minifyCSS({deadCode: true, silent: true}))
 .syphon(stop.addManifest('/app.manifest', {addLinks: true}))
 .syphon(stop.log())
 .syphon(stop.checkStatusCodes([200]))

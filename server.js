@@ -15,11 +15,7 @@ app.use(require('static-favicon')(__dirname + '/favicon.ico'))
 app.use('/polyfills', require('./polyfills'))
 
 app.use(staticFiles + '/style', less('./style/style.less'))
-app.get(staticFiles + '/gittip-widget/client.js', function (req, res, next) {
-  var src = fs.readFileSync(__dirname + '/gittip-widget/client.js', 'utf8');
-  res.type('js');
-  res.send(src);
-});
+
 app.get(staticFiles + '/show-polyfill/client.js', function (req, res, next) {
   var src = fs.readFileSync(__dirname + '/show-polyfill/client.js', 'utf8');
   res.type('js');
