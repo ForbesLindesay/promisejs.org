@@ -36,6 +36,10 @@ html(lang=(locale && translated) ? locale: 'en')
     block scripts
     script(async src=staticFiles + "/show-polyfill/client.js")
     script.
+      var d = document.createElement('div');
+      d.id = 'carbon-location';
+      document.getElementsByClassName('title')[0].appendChild(d);
+      setTimeout(function () {
       (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
       (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
       m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
@@ -43,3 +47,11 @@ html(lang=(locale && translated) ? locale: 'en')
 
       ga('create', 'UA-31798041-3', 'promisejs.org');
       ga('send', 'pageview');
+
+      (function (c, s) {
+      s.async=true;
+      s.src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=promisejsorg";
+      s.id="_carbonads_js";
+      c.appendChild(s);
+      }(d, document.createElement('script')));
+      }, 1000);
