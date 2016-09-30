@@ -1,7 +1,7 @@
 {
   "name": "promisejs.org",
-  "version": "3.0.20",
-  "versionify": "3.0.19",
+  "version": "3.0.23",
+  "versionify": "3.0.23",
   "private": true,
   "description": "A website dedicated to promises in JavaScript",
   "dependencies": {

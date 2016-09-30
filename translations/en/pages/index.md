@@ -186,7 +186,7 @@ convert it to a really simple standardised promise:
 
 Promises are currently only supported by a pretty small selection of browsers
 ([see kangax compatibility tables](http://kangax.github.io/es5-compat-table/es6/#Promise)).
-The good news is that they're extremely easy to polyfill ([minified](/polyfills/promise-$versions.promise$.min.js") / [unminified](/polyfills/promise-$versions.promise$.js")):
+The good news is that they're extremely easy to polyfill ([minified](/polyfills/promise-$versions.promise$.min.js) / [unminified](/polyfills/promise-$versions.promise$.js)):
 
 :html
   <script src="https://www.promisejs.org/polyfills/promise-$versions.promise$.min.js"></script>
