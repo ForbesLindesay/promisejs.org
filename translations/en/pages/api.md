@@ -50,7 +50,7 @@ fulfilled with an array of those resulting values (in the same order as the inpu
 
 ###[Promise_denodeify] Promise.denodeify(fn, length) @non-standard
 
-Some promise implementations provide a `.denodeify` method to make it easier to ineroperate
+Some promise implementations provide a `.denodeify` method to make it easier to interoperate
 with node.js code.  It will add a `callback` to any calls to the function, and use that to
 fullfill or reject the promise.
 
