@@ -90,7 +90,7 @@ returns the resulting array via a callback:
         }
         results[index] = res;
         if (0 === --pending) {
-          callback(null, res);
+          callback(null, results);
         }
       });
     });
