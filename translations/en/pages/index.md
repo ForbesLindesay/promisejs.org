@@ -205,7 +205,7 @@ It's generally not seen as good practice to polyfill things in node.js. Instead,
 To install [promise](https://github.com/then/promise) run:
 
 ```
-npm install promise --save
+npm install promise
 ```
 
 Then you can load it into a local variable using `require`
