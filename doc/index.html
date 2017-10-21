@@ -1,0 +1,192 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf8"><title>Promises</title><link href="/static/3.0.27/style/bundle.css" rel="stylesheet"><meta name="viewport" content="width=device-width, minimal-ui"><link href="/app.manifest" rel="manifest"/></head><body><div id="wrap"><div class="navbar navbar-default navbar-static-top"><div class="container"><ul class="nav navbar-nav"><li><a href="/">Promises</a></li><li><a href="/api/">API <span class="hidden-xs hidden-sm hidden-md">Reference</span></a></li><li><a href="/patterns/">Patterns</a></li><li><a href="/generators/">Generators</a></li><li><a href="/implementing/">Implementing</a></li></ul><ul class="nav navbar-nav navbar-right specification"><li><a href="http://promisesaplus.com/">Specification</a></li></ul></div></div><div class="container"><div id="ad-container"></div><div class="title"><h1>Promises</h1>
+<small>by Forbes Lindesay</small></div>
+<h2 id="motivation">Motivation</h2>
+<p>Consider the following synchronous JavaScript function to read a
+file and parse it as JSON. It is simple and easy to read, but you
+wouldn't want to use it in most applications as it is blocking.
+This means that while you are reading the file from disk (a slow
+operation) nothing else can happen.</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJSONSync</span><span class="hljs-params">(filename)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-built_in">JSON</span>.parse(fs.readFileSync(filename, <span class="hljs-string">'utf8'</span>));
+}</code></pre>
+<p>To make our application performant and responsive, we need to make
+all the operations that involve IO be asynchronous. The simplest
+way to do this would be to use a callback. However, a naive
+implementation will probably go wrong:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJSON</span><span class="hljs-params">(filename, callback)</span></span>{
+  fs.readFile(filename, <span class="hljs-string">'utf8'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, res)</span></span>{
+    <span class="hljs-keyword">if</span> (err) <span class="hljs-keyword">return</span> callback(err);
+    callback(<span class="hljs-literal">null</span>, <span class="hljs-built_in">JSON</span>.parse(res));
+  });
+}</code></pre>
+<ul>
+<li>The extra <code>callback</code> parameter confuses our idea of what is input and what is the return value.</li>
+<li>It doesn't work at all with control flow primitives.</li>
+<li>It doesn't handle errors thrown by <code>JSON.parse</code></li>
+</ul>
+<p>We need to handle errors thrown by <code>JSON.parse</code> but we
+also need to be careful not to handle errors thrown by the
+<code>callback</code> function.  By the time we've done all of this
+our code is a mess of error handling:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJSON</span><span class="hljs-params">(filename, callback)</span></span>{
+  fs.readFile(filename, <span class="hljs-string">'utf8'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, res)</span></span>{
+    <span class="hljs-keyword">if</span> (err) <span class="hljs-keyword">return</span> callback(err);
+    <span class="hljs-keyword">try</span> {
+      res = <span class="hljs-built_in">JSON</span>.parse(res);
+    } <span class="hljs-keyword">catch</span> (ex) {
+      <span class="hljs-keyword">return</span> callback(ex);
+    }
+    callback(<span class="hljs-literal">null</span>, res);
+  });
+}</code></pre>
+<p>Despite all this mess of error handling code, we are still
+left with the problem of the extra <code>callback</code> parameter
+hanging around. Promises help you naturally handle errors, and
+write cleaner code by not having <code>callback</code> parameters,
+and without modifying the underlying architecture (i.e. you can
+<a href="/implementing/">implement</a> them in pure JavaScript
+and use them to wrap existing asynchronous operations).</p>
+<h2 id="definition">What is a promise?</h2>
+<p>The core idea behind promises is that a promise represents the
+result of an asynchronous operation. A promise is in one of
+three different states:</p>
+<ul>
+<li>pending - The initial state of a promise.</li>
+<li>fulfilled - The state of a promise representing a successful operation.</li>
+<li>rejected - The state of a promise representing a failed operation.</li>
+</ul>
+<p>Once a promise is fulfilled or rejected, it is immutable (i.e. it can
+never change again).</p>
+<h2 id="construction">Constructing a promise</h2>
+<p>Once all of the APIs return promises, it should be relatively rare
+that you need to construct one by hand. In the meantime, we need
+a way to polyfill existing APIs.  For example:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readFile</span><span class="hljs-params">(filename, enc)</span></span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill, reject)</span></span>{
+    fs.readFile(filename, enc, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, res)</span></span>{
+      <span class="hljs-keyword">if</span> (err) reject(err);
+      <span class="hljs-keyword">else</span> fulfill(res);
+    });
+  });
+}</code></pre>
+<p>We use <code>new Promise</code> to construct the promise. We give the
+constructor a factory function which does the actual work. This
+function is called immediately with two arguments. The first argument
+fulfills the promise and the second argument rejects the promise.
+Once the operation has completed, we call the appropriate function.</p>
+<h2 id="done">Awaiting a promise</h2>
+<p>In order to use a promise, we must somehow be able to wait for it
+to be fulfilled or rejected. The way to do this is using
+<code>promise.done</code> (see warning at the end of this section if
+attempting to run these samples).</p>
+<p>With this in mind, it's easy to re-write our earlier <code>readJSON</code>
+function to use promises:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJSON</span><span class="hljs-params">(filename)</span></span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill, reject)</span></span>{
+    readFile(filename, <span class="hljs-string">'utf8'</span>).done(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(res)</span></span>{
+      <span class="hljs-keyword">try</span> {
+        fulfill(<span class="hljs-built_in">JSON</span>.parse(res));
+      } <span class="hljs-keyword">catch</span> (ex) {
+        reject(ex);
+      }
+    }, reject);
+  });
+}</code></pre>
+<p>This still has lots of error handling code (we'll see how we can
+improve on that in the next section) but it's a lot less error
+prone to write, and we no longer have a strange extra parameter.</p>
+<div class="panel panel-danger"><div class="panel-heading"><h3 class="panel-title">Non Standard</h3></div>
+<div class="panel-body">Note that <code>promise.done</code> (used in the examples in
+this section) has not been standardised. It is supported by most
+major promise libraries though, and is useful both as a teaching
+aid and in production code. I recommend using it along with the following polyfill (<a href="/polyfills/promise-done-7.0.4.min.js">minified</a> / <a href="/polyfills/promise-done-7.0.4.js">unminified</a>):
+
+undefined</div></div>
+<h2 id="then">Transformation / Chaining</h2>
+<p>Following our example through, what we really want to do is transform
+the promise via another operation. In our case, this second operation
+is synchronous, but it might just as easily have been an asynchronous
+operation. Fortunately, promises have a (fully standardised,
+<a href="#jquery">except jQuery</a>) method for transforming promises
+and chaining operations.</p>
+<p>Put simply, <code>.then</code> is to <code>.done</code> as <code>.map</code> is to <code>.forEach</code>. To put that another
+way, use <code>.then</code> whenever you're going to do something with the result
+(even if that's just waiting for it to finish) and use <code>.done</code>
+whenever you aren't planning on doing anything with the result.</p>
+<p>Now we can re-write our original example as simply:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJSON</span><span class="hljs-params">(filename)</span></span>{
+  <span class="hljs-keyword">return</span> readFile(filename, <span class="hljs-string">'utf8'</span>).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(res)</span></span>{
+    <span class="hljs-keyword">return</span> <span class="hljs-built_in">JSON</span>.parse(res)
+  })
+}</code></pre>
+<p>Since <code>JSON.parse</code> is just a function, we could re-write this as:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJSON</span><span class="hljs-params">(filename)</span></span>{
+  <span class="hljs-keyword">return</span> readFile(filename, <span class="hljs-string">'utf8'</span>).then(<span class="hljs-built_in">JSON</span>.parse);
+}</code></pre>
+<p>This is very close to the simple synchronous example we started out with.</p>
+<h2 id="implementations">Implementations / Polyfills</h2>
+<p>p Promises are useful both in node.js and the browser</p>
+<h3 id="jquery">jQuery</h3>
+<p>This feels like a good time to warn you that what jQuery calls a promise is in fact totally different
+to what everyone else calls a promise. jQuery's promises have a poorly thought out API that will likely just
+confuse you. Fortunately, instead of using jQuery's strange version of a promise, you can just
+convert it to a really simple standardised promise:</p>
+<pre><code><span class="hljs-keyword">var</span> jQueryPromise = $.ajax(<span class="hljs-string">'/data.json'</span>);
+<span class="hljs-keyword">var</span> realPromise = Promise.resolve(jQueryPromise);
+<span class="hljs-comment">//now just use `realPromise` however you like.</span></code></pre>
+<h3 id="browser">Browser</h3>
+<p>Promises are currently only supported by a pretty small selection of browsers
+(<a href="http://kangax.github.io/es5-compat-table/es6/#Promise">see kangax compatibility tables</a>).
+The good news is that they're extremely easy to polyfill (<a href="/polyfills/promise-7.0.4.min.js">minified</a> / <a href="/polyfills/promise-7.0.4.js">unminified</a>):</p>
+<div class="small-code"><pre><code><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"https://www.promisejs.org/polyfills/promise-7.0.4.min.js"</span>&gt;</span><span class="javascript"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span></code></pre></div>
+<p>None of the browsers currently support <code>Promise.prototype.done</code>
+so if you want to use that feature, and you are not including the
+polyfill above, you must at least include this polyfill (<a href="/polyfills/promise-done-7.0.4.min.js">minified</a> / <a href="/polyfills/promise-done-7.0.4.js">unminified</a>):</p>
+<div class="small-code"><pre><code><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"https://www.promisejs.org/polyfills/promise-done-7.0.4.min.js"</span>&gt;</span><span class="javascript"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span></code></pre></div>
+<h3 id="node">Node.js</h3>
+<p>It's generally not seen as good practice to polyfill things in node.js. Instead, you're better off just requiring the library wherever you need it.</p>
+<p>To install <a href="https://github.com/then/promise">promise</a> run:</p>
+<pre><code>npm install promise --save
+</code></pre>
+<p>Then you can load it into a local variable using <code>require</code></p>
+<pre><code><span class="hljs-keyword">var</span> Promise = <span class="hljs-built_in">require</span>(<span class="hljs-string">'promise'</span>);</code></pre>
+<p>The &quot;promise&quot; library also provides a couple of really useful extensions for interacting with node.js</p>
+<pre><code><span class="hljs-keyword">var</span> readFile = Promise.denodeify(<span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>).readFile);
+<span class="hljs-comment">// now `readFile` will return a promise rather than</span>
+<span class="hljs-comment">// expecting a callback</span>
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJSON</span><span class="hljs-params">(filename, callback)</span></span>{
+  <span class="hljs-comment">// If a callback is provided, call it with error as the</span>
+  <span class="hljs-comment">// first argument and result as the second argument,</span>
+  <span class="hljs-comment">// then return `undefined`. If no callback is provided,</span>
+  <span class="hljs-comment">// just return the promise.</span>
+  <span class="hljs-keyword">return</span> readFile(filename, <span class="hljs-string">'utf8'</span>)
+    .then(<span class="hljs-built_in">JSON</span>.parse)
+    .nodeify(callback);
+}</code></pre>
+<h2 id="apendix">Further Reading</h2>
+<ul>
+<li><a href="/patterns/">Patterns</a> - patterns of promise use, introducing lots of helper methods that will save you time.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">MDN</a> - The mozilla developer network has great documentation on promises.</li>
+<li><a href="https://www.youtube.com/watch?v=qbKWsbJ76-s">YouTube</a> - A video of my JSConf.eu talk that discusses many of the same things as appear in this article.</li>
+</ul>
+<ul class="pager"><li class="next"><a href="/api/">API Reference &rarr;</a></li></ul>
+</div><div id="push"></div></div><div id="footer-wrapper"><footer><div class="container"><p>Developed by&nbsp;<a href="http://www.forbeslindesay.co.uk" class="jepso">@ForbesLindesay</a></p><p>Can you make this better?  Please fork it on <a href="https://github.com/ForbesLindesay/promisejs.org" class="jepso">GitHub</a></p></div></footer></div><script async src="/static/3.0.27/show-polyfill/client.js"></script><script>var d = document.createElement('div');
+d.id = 'carbon-location';
+document.getElementsByClassName('title')[0].appendChild(d);
+setTimeout(function () {
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-31798041-3', 'promisejs.org');
+ga('send', 'pageview');
+
+(function (c, s) {
+s.async=true;
+s.src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=promisejsorg";
+s.id="_carbonads_js";
+c.appendChild(s);
+}(d, document.createElement('script')));
+}, 1000);</script><import>./fbpixel.html</import></body></html>

@@ -1,0 +1,327 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf8"><title>Promises</title><link href="/static/3.0.27/style/bundle.css" rel="stylesheet"><meta name="viewport" content="width=device-width, minimal-ui"><link href="/app.manifest" rel="manifest"/></head><body><div id="wrap"><div class="navbar navbar-default navbar-static-top"><div class="container"><ul class="nav navbar-nav"><li><a href="/">Promises</a></li><li><a href="/api/">API <span class="hidden-xs hidden-sm hidden-md">Reference</span></a></li><li><a href="/patterns/">Patterns</a></li><li><a href="/generators/">Generators</a></li><li><a href="/implementing/">Implementing</a></li></ul><ul class="nav navbar-nav navbar-right specification"><li><a href="http://promisesaplus.com/">Specification</a></li></ul></div></div><div class="container"><div id="ad-container"></div><div class="title"><h1>API Reference</h1>
+<small>by Forbes Lindesay (with many examples taken from <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise">MDN</a>)</small></div>
+<h2>Methods</h2>
+<h3 id="Promise_all">Promise.all(iterable)</h3>
+<p>Returns a Promise that waits for all promises in the <code>iterable</code> to be fulfilled and is then
+fulfilled with an array of those resulting values (in the same order as the input).</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#evgewslk">Show Example</button><div id="evgewslk"><pre><code><span class="hljs-keyword">var</span> promise = Promise.resolve(<span class="hljs-number">3</span>);
+Promise.all([<span class="hljs-literal">true</span>, promise]).then(values =&gt; {
+  <span class="hljs-built_in">console</span>.log(values); <span class="hljs-comment">// [true, 3]</span>
+});</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#eamr4a84">Show Polyfill</button><div id="eamr4a84"><pre><code>Promise.all = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(arr)</span> </span>{
+  <span class="hljs-comment">// TODO: this polyfill only supports array-likes</span>
+  <span class="hljs-comment">//       it should support all iterables</span>
+  <span class="hljs-keyword">var</span> args = <span class="hljs-built_in">Array</span>.prototype.slice.call(arr);
+
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve, reject)</span> </span>{
+    <span class="hljs-keyword">if</span> (args.length === <span class="hljs-number">0</span>) <span class="hljs-keyword">return</span> resolve([]);
+    <span class="hljs-keyword">var</span> remaining = args.length;
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">res</span><span class="hljs-params">(i, val)</span> </span>{
+      <span class="hljs-keyword">if</span> (val &amp;&amp; (<span class="hljs-keyword">typeof</span> val === <span class="hljs-string">'object'</span> || <span class="hljs-keyword">typeof</span> val === <span class="hljs-string">'function'</span>)) {
+        <span class="hljs-keyword">var</span> then = val.then;
+        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> then === <span class="hljs-string">'function'</span>) {
+          <span class="hljs-keyword">var</span> p = <span class="hljs-keyword">new</span> Promise(then.bind(val));
+          p.then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(val)</span> </span>{
+            res(i, val);
+          }, reject);
+          <span class="hljs-keyword">return</span>;
+        }
+      }
+      args[i] = val;
+      <span class="hljs-keyword">if</span> (--remaining === <span class="hljs-number">0</span>) {
+        resolve(args);
+      }
+    }
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; args.length; i++) {
+      res(i, args[i]);
+    }
+  });
+};</code></pre></div>
+<h3 id="Promise_denodeify">Promise.denodeify(fn, length) <span style="font-size: 0.6em; float: right"><span class="label label-danger">Non Standard</span></span></h3>
+<p>Some promise implementations provide a <code>.denodeify</code> method to make it easier to interoperate
+with node.js code.  It will add a <code>callback</code> to any calls to the function, and use that to
+fullfill or reject the promise.</p>
+<p>If the function returns a Promise, the state of that Promise will be used instead of the callback.</p>
+<p>If <code>length</code> is specified and more arguments are passed than <code>length</code>, the remaining arguments
+will not be passed down to fn.</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#e8ossfbq">Show Example</button><div id="e8ossfbq"><pre><code><span class="hljs-keyword">var</span> Promise = <span class="hljs-built_in">require</span>(<span class="hljs-string">'promise'</span>);
+<span class="hljs-keyword">var</span> readFile = Promise.denodeify(<span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>).readFile);
+
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJson</span><span class="hljs-params">(filename)</span> </span>{
+  <span class="hljs-keyword">return</span> readFile(filename, <span class="hljs-string">'utf8'</span>).then(<span class="hljs-built_in">JSON</span>.parse);
+};</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#ecfi0sce">Show Polyfill</button><div id="ecfi0sce"><pre><code>Promise.denodeify = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fn, argumentCount)</span> </span>{
+  argumentCount = argumentCount || <span class="hljs-literal">Infinity</span>;
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+    <span class="hljs-keyword">var</span> args = <span class="hljs-built_in">Array</span>.prototype.slice.call(<span class="hljs-built_in">arguments</span>);
+    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve, reject)</span> </span>{
+      <span class="hljs-keyword">while</span> (args.length &amp;&amp; args.length &gt; argumentCount) {
+        args.pop();
+      }
+      args.push(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, res)</span> </span>{
+        <span class="hljs-keyword">if</span> (err) reject(err);
+        <span class="hljs-keyword">else</span> resolve(res);
+      })
+      <span class="hljs-keyword">var</span> res = fn.apply(self, args);
+      <span class="hljs-keyword">if</span> (res &amp;&amp;
+        (
+          <span class="hljs-keyword">typeof</span> res === <span class="hljs-string">'object'</span> ||
+          <span class="hljs-keyword">typeof</span> res === <span class="hljs-string">'function'</span>
+        ) &amp;&amp;
+        <span class="hljs-keyword">typeof</span> res.then === <span class="hljs-string">'function'</span>
+      ) {
+        resolve(res);
+      }
+    })
+  }
+}</code></pre></div>
+<h3 id="Promise_race">Promise.race(iterable)</h3>
+<p>Returns a promise that resolves or rejects as soon as any of the promises in <code>iterable</code> have
+been resolved or rejected (with the corresponding reason or value).</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#eqq80vls">Show Example</button><div id="eqq80vls"><pre><code><span class="hljs-keyword">var</span> p1 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  setTimeout(resolve, <span class="hljs-number">500</span>, <span class="hljs-string">"one"</span>);
+});
+<span class="hljs-keyword">var</span> p2 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  setTimeout(resolve, <span class="hljs-number">100</span>, <span class="hljs-string">"two"</span>);
+});
+
+Promise.race([p1, p2]).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// "two"</span>
+  <span class="hljs-comment">// Both resolve, but p2 is faster</span>
+});
+
+<span class="hljs-keyword">var</span> p3 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  setTimeout(resolve, <span class="hljs-number">100</span>, <span class="hljs-string">"three"</span>);
+});
+<span class="hljs-keyword">var</span> p4 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  setTimeout(reject, <span class="hljs-number">500</span>, <span class="hljs-string">"four"</span>);
+});
+
+Promise.race([p3, p4]).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// "three"</span>
+  <span class="hljs-comment">// p3 is faster, so it resolves</span>
+}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(reason)</span> </span>{
+  <span class="hljs-comment">// Not called</span>
+});
+
+<span class="hljs-keyword">var</span> p5 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  setTimeout(resolve, <span class="hljs-number">500</span>, <span class="hljs-string">"five"</span>);
+});
+<span class="hljs-keyword">var</span> p6 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  setTimeout(reject, <span class="hljs-number">100</span>, <span class="hljs-string">"six"</span>);
+});
+
+Promise.race([p5, p6]).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-comment">// Not called</span>
+}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(reason)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(reason); <span class="hljs-comment">// "six"</span>
+  <span class="hljs-comment">// p6 is faster, so it rejects</span>
+});</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#efjpyntl">Show Polyfill</button><div id="efjpyntl"><pre><code>Promise.race = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(values)</span> </span>{
+  <span class="hljs-comment">// TODO: this polyfill only supports array-likes</span>
+  <span class="hljs-comment">//       it should support all iterables</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve, reject)</span> </span>{
+    values.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span></span>{
+      Promise.resolve(value).then(resolve, reject);
+    });
+  });
+};</code></pre></div>
+<h3 id="Promise_reject">Promise.reject(reason)</h3>
+<p>Returns a promise that is rejected with the given <code>reason</code>.</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#eb9a5ol3">Show Example</button><div id="eb9a5ol3"><pre><code>Promise.reject(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"fail"</span>)).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error)</span> </span>{
+  <span class="hljs-comment">// not called</span>
+}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(error); <span class="hljs-comment">// Stacktrace</span>
+});</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#ervfevyx">Show Polyfill</button><div id="ervfevyx"><pre><code>Promise.reject = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve, reject)</span> </span>{
+    reject(value);
+  });
+};</code></pre></div>
+<h3 id="Promise_resolve">Promise.resolve(value)</h3>
+<p>Returns a promise that is resolved with the given <code>value</code>.</p>
+<p>If the <code>value</code> is a promise, then it is unwrapped so that the resulting promise adopts
+the state of the promise passed in as <code>value</code>.  This is useful for converting promises
+created by other libraries.</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#epi5jh1s">Show Example</button><div id="epi5jh1s"><pre><code>Promise.resolve(<span class="hljs-string">"Success"</span>).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// "Success"</span>
+}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-comment">// not called</span>
+});
+<span class="hljs-keyword">var</span> p = Promise.resolve([<span class="hljs-number">1</span>,<span class="hljs-number">2</span>,<span class="hljs-number">3</span>]);
+p.then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(v)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(v[<span class="hljs-number">0</span>]); <span class="hljs-comment">// 1</span>
+});
+<span class="hljs-keyword">var</span> original = Promise.resolve(<span class="hljs-literal">true</span>);
+<span class="hljs-keyword">var</span> cast = Promise.resolve(original);
+cast.then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(v)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(v); <span class="hljs-comment">// true</span>
+});</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#ej6terd7">Show Polyfill</button><div id="ej6terd7"><pre><code>Promise.resolve = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve)</span> </span>{
+    resolve(value);
+  });
+};</code></pre></div>
+<h2>Prototype Methods</h2>
+<h3 id="Promise_prototype_catch">Promise.prototype.catch(onRejected)</h3>
+<p>Equivalent to calling <code>Promise.prototype.then(undefined, onRejected)</code></p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#eeigm286">Show Example</button><div id="eeigm286"><pre><code><span class="hljs-keyword">var</span> p1 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  resolve(<span class="hljs-string">"Success"</span>);
+});
+
+p1.then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// "Success!"</span>
+  <span class="hljs-keyword">throw</span> <span class="hljs-string">"oh, no!"</span>;
+}).catch(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(e)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(e); <span class="hljs-comment">// "oh, no!"</span>
+});
+
+p1.then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// "Success!"</span>
+  <span class="hljs-keyword">throw</span> <span class="hljs-string">"oh, no!"</span>;
+}).then(<span class="hljs-literal">undefined</span>, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(e)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(e); <span class="hljs-comment">// "oh, no!"</span>
+});</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#ejqlhhd0">Show Polyfill</button><div id="ejqlhhd0"><pre><code>Promise.prototype[<span class="hljs-string">'catch'</span>] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(onRejected)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.then(<span class="hljs-literal">null</span>, onRejected);
+};</code></pre></div>
+<h3 id="Promise_prototype_done">Promise.prototype.done(onFulfilled, onRejected) <span style="font-size: 0.6em; float: right"><span class="label label-danger">Non Standard</span></span></h3>
+<p>Calls <code>onFulfilled</code> or <code>onRejected</code> with the fulfillment value or
+rejection reason of the promise (as appropriate).</p>
+<p>Unlike <code>Promise.prototype.then</code> it does not return a Promise.  It will also throw any
+errors that occur in the next tick, so they are not silenced.  In node.js they will then
+crash your process (so it can be restarted in a clean state).  In browsers, this will cause
+the error to be properly logged.</p>
+<p>Note that <code>promise.done</code> has not been standardised. It is supported by most
+major promise libraries though, and is useful for avoiding silencing errors by accident.
+I recommend using it with the following polyfill (#[a(href=&quot;/polyfills/promise-done-&quot; + versions.promise + &quot;.min.js&quot;) minified] / #[a(href=&quot;/polyfills/promise-done-&quot; + versions.promise + &quot;.js&quot;) unminified]):</p>
+<div class="small-code"><pre><code><span class="hljs-tag">&lt;<span class="hljs-title">script</span> <span class="hljs-attribute">src</span>=<span class="hljs-value">"https://www.promisejs.org/polyfills/promise-done-#{versions.promise}.min.js"</span>&gt;</span><span class="javascript"></span><span class="hljs-tag">&lt;/<span class="hljs-title">script</span>&gt;</span></code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#erk0lrxi">Show Example</button><div id="erk0lrxi"><pre><code><span class="hljs-keyword">var</span> Promise = <span class="hljs-built_in">require</span>(<span class="hljs-string">'promise'</span>);
+<span class="hljs-keyword">var</span> p = Promise.resolve(<span class="hljs-string">'foo'</span>);
+
+p.done(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// "foo"</span>
+});
+
+p.done(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Ooops!'</span>); <span class="hljs-comment">// thrown in next tick</span>
+});</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#evce7fbq">Show Polyfill</button><div id="evce7fbq"><pre><code>Promise.prototype.done = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(onFulfilled, onRejected)</span> </span>{
+  <span class="hljs-keyword">var</span> self = <span class="hljs-built_in">arguments</span>.length ? <span class="hljs-keyword">this</span>.then.apply(<span class="hljs-keyword">this</span>, <span class="hljs-built_in">arguments</span>) : <span class="hljs-keyword">this</span>
+  self.then(<span class="hljs-literal">null</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{
+    setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">throw</span> err
+    }, <span class="hljs-number">0</span>)
+  })
+}</code></pre></div>
+<h3 id="Promise_prototype_finally">Promise.prototype.finally(onResolved) <span style="font-size: 0.6em; float: right"><span class="label label-danger">Non Standard</span></span></h3>
+<p>Some promise libraries implement a (non-standard) <code>.finally</code> method.  It takes a function,
+which it calls whenever the promise is fulfilled or rejected.  It can be pollyfilled with:</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#emqbcwl8">Show Example</button><div id="emqbcwl8"><pre><code><span class="hljs-keyword">var</span> Promise = <span class="hljs-built_in">require</span>(<span class="hljs-string">'promise'</span>);
+<span class="hljs-keyword">var</span> p = Promise.resolve(<span class="hljs-string">'foo'</span>);
+<span class="hljs-keyword">var</span> disposed = <span class="hljs-literal">false</span>;
+p.then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Math</span>.random() &lt; <span class="hljs-number">0.5</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'oops!'</span>);
+  <span class="hljs-keyword">else</span> <span class="hljs-keyword">return</span> value;
+}).finally(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+  disposed = <span class="hljs-literal">true</span>; <span class="hljs-comment">// always called</span>
+}).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// =&gt; "foo"</span>
+}, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(err); <span class="hljs-comment">// =&gt; oops!</span>
+});</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#e7884qre">Show Polyfill</button><div id="e7884qre"><pre><code>Promise.prototype[<span class="hljs-string">'finally'</span>] = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(f)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>.then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+    <span class="hljs-keyword">return</span> Promise.resolve(f()).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">return</span> value;
+    });
+  }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{
+    <span class="hljs-keyword">return</span> Promise.resolve(f()).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">throw</span> err;
+    });
+  });
+}</code></pre></div>
+<h3 id="Promise_prototype_nodeify">Promise.prototype.nodeify(callback, ctx) <span style="font-size: 0.6em; float: right"><span class="label label-danger">Non Standard</span></span></h3>
+<p>Some promise implementations provide a <code>.nodeify</code> method to make it easier to ineroperate
+with node.js code.  If the <code>callback</code> parameter is not a function, it simply returns the
+promise without any changes.  If the callback is a function, it is called and <code>undefined</code>
+is returned.</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#eouexvg8">Show Example</button><div id="eouexvg8"><pre><code><span class="hljs-keyword">var</span> Promise = <span class="hljs-built_in">require</span>(<span class="hljs-string">'promise'</span>);
+<span class="hljs-keyword">var</span> readFile = Promise.denodeify(<span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>).readFile);
+
+<span class="hljs-comment">// accepts an optional callback</span>
+<span class="hljs-built_in">module</span>.exports = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJson</span><span class="hljs-params">(filename, callback)</span> </span>{
+  <span class="hljs-keyword">return</span> readFile(filename, <span class="hljs-string">'utf8'</span>).then(<span class="hljs-built_in">JSON</span>.parse).nodeify(callback);
+};</code></pre></div>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#e7setwwu">Show Polyfill</button><div id="e7setwwu"><pre><code>Promise.prototype.nodeify = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(callback, ctx)</span> </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> callback != <span class="hljs-string">'function'</span>) <span class="hljs-keyword">return</span> <span class="hljs-keyword">this</span>;
+
+  <span class="hljs-keyword">this</span>.then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+    asap(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      callback.call(ctx, <span class="hljs-literal">null</span>, value);
+    });
+  }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{
+    asap(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      callback.call(ctx, err);
+    });
+  });
+}</code></pre></div>
+<h3 id="Promise_prototype_then">Promise.prototype.then(onFulfilled, onRejected)</h3>
+<p>Calls <code>onFulfilled</code> or <code>onRejected</code> with the fulfillment value or
+rejection reason of the promise (as appropriate)
+and returns a new promise resolving to the return value of the called handler.</p>
+<p>If the handler throws an error, the returned Promise will be rejected with that error.</p>
+<p>If the <code>onFulfilled</code> handler is not a function, it defaults to the identify function
+(i.e. <code>function (value) { return value; }</code>).</p>
+<p>If the <code>onRejected</code> handler is not a function, it defaults to a function that always throws
+(i.e. <code>function (reason) { throw reason; }</code>).</p>
+<button class="btn btn-default btn-xs" style="outline: none; display: none;" data-action="show-polyfill" data-target="#eq5vi54n">Show Example</button><div id="eq5vi54n"><pre><code><span class="hljs-keyword">var</span> p1 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  resolve(<span class="hljs-string">"Success!"</span>);
+  <span class="hljs-comment">// or</span>
+  <span class="hljs-comment">// reject ("Error!");</span>
+});
+
+p1.then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// Success!</span>
+}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(reason)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(reason); <span class="hljs-comment">// Error!</span>
+});
+
+<span class="hljs-keyword">var</span> p2 = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(resolve, reject)</span> </span>{
+  resolve(<span class="hljs-number">1</span>);
+});
+
+p2.then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// 1</span>
+  <span class="hljs-keyword">return</span> value + <span class="hljs-number">1</span>;
+}).then(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-built_in">console</span>.log(value); <span class="hljs-comment">// 2</span>
+});</code></pre></div>
+<h2 id="apendix">Further Reading</h2>
+<ul>
+<li><a href="/">Promises Introduction</a> - explains why Promises are necessary and why we can't just use callbacks.</li>
+<li><a href="/patterns/">Patterns</a> - patterns of promise use, introducing lots of helper methods that will save you time.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">MDN</a> - The mozilla developer network has great documentation on promises.</li>
+</ul>
+<ul class="pager"><li class="previous"><a href="/">&larr; introduction</a></li>
+<li class="next"><a href="/patterns/">patterns &rarr;</a></li></ul>
+</div><div id="push"></div></div><div id="footer-wrapper"><footer><div class="container"><p>Developed by&nbsp;<a href="http://www.forbeslindesay.co.uk" class="jepso">@ForbesLindesay</a></p><p>Can you make this better?  Please fork it on <a href="https://github.com/ForbesLindesay/promisejs.org" class="jepso">GitHub</a></p></div></footer></div><script async src="/static/3.0.27/show-polyfill/client.js"></script><script>var d = document.createElement('div');
+d.id = 'carbon-location';
+document.getElementsByClassName('title')[0].appendChild(d);
+setTimeout(function () {
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-31798041-3', 'promisejs.org');
+ga('send', 'pageview');
+
+(function (c, s) {
+s.async=true;
+s.src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=promisejsorg";
+s.id="_carbonads_js";
+c.appendChild(s);
+}(d, document.createElement('script')));
+}, 1000);</script><import>./fbpixel.html</import></body></html>
