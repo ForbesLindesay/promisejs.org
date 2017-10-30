@@ -26,7 +26,8 @@ app.use(function (req, res, next) {
 
   res.render('page.jade', getContent(url, {
     versions: require('./package.json').dependencies,
-    locale: 'en'
+    locale: 'zh-CN',
+    translated: true,
   }));
 });
 

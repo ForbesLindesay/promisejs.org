@@ -6,8 +6,15 @@ var Plugin = require('markdown-it-regexp');
 
 module.exports = function getContent(url, options) {
   function read(filename) {
+    var filePath = __dirname + '/translations/' + options.locale + filename
+    var exists = fs.existsSync(filePath)
+    if (!exists) {
+      var fallbackLocale = 'en'
+      var fallbackFilePath = __dirname + '/translations/' + fallbackLocale + filename
+      filePath = fallbackFilePath
+    }
     return fs.readFileSync(
-      __dirname + '/translations/' + options.locale + filename,
+      filePath,
       'utf8'
     ).trim();
   }
