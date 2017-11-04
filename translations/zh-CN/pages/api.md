@@ -1,15 +1,19 @@
 @title
   @primary
-    API Reference
+    API 指南
   @secondary
-    by Forbes Lindesay (with many examples taken from @mdn)
+    Forbes Lindesay 作
+    Cheng Liu 译
 
-## Methods
+## 方法
 
 ###[Promise_all] Promise.all(iterable)
 
-Returns a Promise that waits for all promises in the `iterable` to be fulfilled and is then
-fulfilled with an array of those resulting values (in the same order as the input).
+参数:
+  1 可遍历元素
+
+返回:
+  一个 Promise 对象。等待 `iterable` 中所有的 promise 执行完毕后，生成出一个执行结果的数组（与传入的 `iterable` 顺序相同），再将该数组做为参数传给 Promise 对象、
 
 :js-example
   var promise = Promise.resolve(3);
@@ -19,8 +23,8 @@ fulfilled with an array of those resulting values (in the same order as the inpu
 
 :js-polyfill
   Promise.all = function (arr) {
-    // TODO: this polyfill only supports array-likes
-    //       it should support all iterables
+    // 待完成: 该 polyfill 暂时只支持类似数组的 iterable 元素
+    //       应该能支持所有形式的iterable元素
     var args = Array.prototype.slice.call(arr);
 
     return new Promise(function (resolve, reject) {
@@ -305,16 +309,21 @@ which it calls whenever the promise is fulfilled or rejected.  It can be pollyfi
 
 ###[Promise_prototype_nodeify] Promise.prototype.nodeify(callback, ctx) @non-standard
 
-Some promise implementations provide a `.nodeify` method to make it easier to ineroperate
-with node.js code.  If the `callback` parameter is not a function, it simply returns the
-promise without any changes.  If the callback is a function, it is called and `undefined`
-is returned.
+在一些 promise 的实现中提供了 `.nodeify` 方法，目的是为了更简单的和 node.js 的代码交互。
+
+参数：
+  1. callback 回调函数
+  2. ctx 指定回调函数调用时的作用域
+
+返回：
+  1. 如果 `callback` 参数不是一个函数，那么仅返回原来的 promise 而不进行任何改动
+  2. 如果 `callback` 是一个函数，那么它就会被执行并且返回 `undefined`
 
 :js-example
   var Promise = require('promise');
   var readFile = Promise.denodeify(require('fs').readFile);
 
-  // accepts an optional callback
+  // callback 是可选参数
   module.exports = function readJson(filename, callback) {
     return readFile(filename, 'utf8').then(JSON.parse).nodeify(callback);
   };
@@ -336,29 +345,33 @@ is returned.
 
 ###[Promise_prototype_then] Promise.prototype.then(onFulfilled, onRejected)
 
-Calls `onFulfilled` or `onRejected` with the fulfillment value or
-rejection reason of the promise (as appropriate)
-and returns a new promise resolving to the return value of the called handler.
+根据 promise 执行的情况，适时调用 `onFulfilled` 函数， `onRejected` 函数
 
-If the handler throws an error, the returned Promise will be rejected with that error.
+参数：
 
-If the `onFulfilled` handler is not a function, it defaults to the identify function
-(i.e. `function (value) { return value; }`).
+  1. onFulfilled promise 执行成功时被调用，且将执行结果做为参数传入
+  2. onRejected promise 执行出现异常时呗调用，会将异常做为参数传入
 
-If the `onRejected` handler is not a function, it defaults to a function that always throws
-(i.e. `function (reason) { throw reason; }`).
+返回：
+
+  1. 如果 promise 正常执行完成，返回 `onFulfilled` 执行的结果
+  2. 如果 promise 执行抛出异常，返回 `onRejected` 执行的结果
+  3. 如果 `onFulfilled` 不是一个函数，当 promise 执行成功后，返回 promise 的执行结果
+    （比如 `function (value) { return value; }`）
+  4. 如果 `onRejected` 不是一个函数，当 promise 执行异常后，不进行捕捉，继续抛出异常
+    （比如 `function (reason) { throw reason; }`）
 
 :js-example
   var p1 = new Promise(function(resolve, reject) {
     resolve("Success!");
-    // or
+    // 或者
     // reject ("Error!");
   });
 
   p1.then(function(value) {
-    console.log(value); // Success!
+    console.log(value); // 执行成功！
   }, function(reason) {
-    console.log(reason); // Error!
+    console.log(reason); // 执行失败！
   });
 
   var p2 = new Promise(function(resolve, reject) {
@@ -372,15 +385,14 @@ If the `onRejected` handler is not a function, it defaults to a function that al
     console.log(value); // 2
   });
 
-##[apendix] Further Reading
+##[apendix] 更多阅读
 
- - [Promises Introduction](/) - explains why Promises are necessary and why we can't just use callbacks.
- - [Patterns](/patterns/) - patterns of promise use, introducing lots of helper methods that will save you time.
- - [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) - The mozilla developer network has great documentation on promises.
+ - [Promises Introduction](/) - 解释了 Promise 的必要性，还有仅使用 callback 的弊端
+ - [Patterns](/patterns/) - promise 的用法, 许多辅助方法让你的 promise 事半功倍
+ - [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise) - mozilla 开发者社区关于 promise 的佳作
 
 @pager
   @previous(href="/")
     introduction
   @next(href="/patterns/")
     patterns
-
