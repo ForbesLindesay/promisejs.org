@@ -1,0 +1,149 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf8"><title>Promises</title><link href="/static/3.0.27/style/bundle.css" rel="stylesheet"><meta name="viewport" content="width=device-width, minimal-ui"><link href="/app.manifest" rel="manifest"/></head><body><div id="wrap"><div class="navbar navbar-default navbar-static-top"><div class="container"><ul class="nav navbar-nav"><li><a href="/">Promises</a></li><li><a href="/api/">API <span class="hidden-xs hidden-sm hidden-md">Reference</span></a></li><li><a href="/patterns/">Patterns</a></li><li><a href="/generators/">Generators</a></li><li><a href="/implementing/">Implementing</a></li></ul><ul class="nav navbar-nav navbar-right specification"><li><a href="http://promisesaplus.com/">Specification</a></li></ul></div></div><div class="container"><div id="ad-container"></div><div class="title"><h1>Generators</h1>
+<small>by Forbes Lindesay</small></div>
+<h2 id="intro">Introduction</h2>
+<p>One of the most exciting features introduced in ES6 is generators. Their primary use case is in
+representing lazy (possibly infinite) sequences. For example, the following function returns the
+first n positive integers.</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">count</span><span class="hljs-params">(n)</span></span>{
+  <span class="hljs-keyword">var</span> res = []
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> x = <span class="hljs-number">0</span>; x &lt; n; x++) {
+    res.push(x)
+  }
+  <span class="hljs-keyword">return</span> res
+}
+
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> x of count(<span class="hljs-number">5</span>)) {
+  <span class="hljs-built_in">console</span>.log(x)
+}</code></pre>
+<p>We can write a very similar function using generators, that returns all the positive integers.</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span>* <span class="hljs-title">count</span><span class="hljs-params">()</span></span>{
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> x = <span class="hljs-number">0</span>; <span class="hljs-literal">true</span>; x++) {
+    <span class="hljs-keyword">yield</span> x
+  }
+}
+
+<span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> x of count()) {
+  <span class="hljs-built_in">console</span>.log(x)
+}</code></pre>
+<p>What's actually going on here, is that the <code>count</code> function is being lazily evaluated,
+so it pauses at each <code>yield</code> and waits until another value is asked for. This means that
+the for/of loop will execute forever, continually getting the next integer in an infinite list.</p>
+<p>The reason this is so exciting, is that we can exploit the ability to pause a function in order
+to help us write asynchronous code. Specifically, this will allow us to do asynchronous things
+inside our existing control flow structures, such as loops, conditionals and try/catch blocks.</p>
+<p>What generators do <strong>not</strong> do is give us a way of representing the result of an asynchronous
+operation. For that, we need a promise.</p>
+<p>The goal of this article is to teach you to be able to write code like:</p>
+<pre><code><span class="hljs-keyword">var</span> login = async(<span class="hljs-function"><span class="hljs-keyword">function</span>* <span class="hljs-params">(username, password, session)</span> </span>{
+  <span class="hljs-keyword">var</span> user = <span class="hljs-keyword">yield</span> getUser(username);
+  <span class="hljs-keyword">var</span> hash = <span class="hljs-keyword">yield</span> crypto.hashAsync(password + user.salt);
+  <span class="hljs-keyword">if</span> (user.hash !== hash) {
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Incorrect password'</span>);
+  }
+  session.setUser(user);
+});</code></pre>
+<p>Here the code reads just like it would if it were synchronous, but is in fact doing asynchronous
+work at each of the <code>yield</code> keywords. The result of calling the <code>login</code> function would
+be a promise.</p>
+<h2 id="fulfilling">How it works - Fulfilling</h2>
+<p>As you saw in the introduction, we can pause to wait for a promise using the <code>yield</code> keyword.
+What we need now is a way to get fine control over that generator function so as to have it start
+again once the promise completes. Fortunately, it's possible to step through a generator function via
+the <code>.next</code> method.</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span>* <span class="hljs-title">demo</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">var</span> res = <span class="hljs-keyword">yield</span> <span class="hljs-number">10</span>;
+  assert(res === <span class="hljs-number">32</span>);
+  <span class="hljs-keyword">return</span> <span class="hljs-number">42</span>;
+}
+
+<span class="hljs-keyword">var</span> d = demo();
+<span class="hljs-keyword">var</span> resA = d.next();
+<span class="hljs-comment">// =&gt; {value: 10, done: false}</span>
+<span class="hljs-keyword">var</span> resB = d.next(<span class="hljs-number">32</span>);
+<span class="hljs-comment">// =&gt; {value: 42, done: true}</span>
+<span class="hljs-comment">//if we call d.next() again it throws an error</span></code></pre>
+<p>What's happening here is that we call <code>d.next()</code> once to get it to the <code>yield</code>,
+and then when we call <code>d.next()</code> a second time, we give it a value that is the result
+of the <code>yield</code> expression.  The function can then move on to the <code>return</code> statement
+to return a final result.</p>
+<p>We can use this, by calling <code>.next(result)</code> to signal that a promise has been fulfilled
+with result.</p>
+<h2 id="rejecting">How it works - Rejecting</h2>
+<p>We also need a way to represent a promise that's been yielded being rejected. We can use the
+<code>.throw(error)</code> method on the generator to do this.</p>
+<pre><code><span class="hljs-keyword">var</span> sentinel = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'foo'</span>);
+<span class="hljs-function"><span class="hljs-keyword">function</span>* <span class="hljs-title">demo</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-keyword">try</span> {
+    <span class="hljs-keyword">yield</span> <span class="hljs-number">10</span>;
+  } <span class="hljs-keyword">catch</span> (ex) {
+    assert(ex === sentinel);
+  }
+}
+
+<span class="hljs-keyword">var</span> d = demo();
+d.next();
+<span class="hljs-comment">// =&gt; {value: 10, done: false}</span>
+d.throw(sentinel);</code></pre>
+<p>Like before, we call <code>d.next()</code> to get to the first <code>yield</code> keyword. We can then
+signal rejection using <code>d.throw(error)</code>, which causes the generator to act as though
+<code>yield</code> throw an error. In our example, this will trigger the <code>catch</code> block.</p>
+<h2 id="both">How it works - Putting it all together</h2>
+<p>Putting all of this together, we just have to keep manually moving the generator forwards
+with the results of any promises it has yielded.  We can do that using a simple function
+like this one:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">async</span><span class="hljs-params">(makeGenerator)</span></span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">var</span> generator = makeGenerator.apply(<span class="hljs-keyword">this</span>, <span class="hljs-built_in">arguments</span>);
+
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handle</span><span class="hljs-params">(result)</span></span>{
+      <span class="hljs-comment">// result =&gt; { done: [Boolean], value: [Object] }</span>
+      <span class="hljs-keyword">if</span> (result.done) <span class="hljs-keyword">return</span> Promise.resolve(result.value);
+
+      <span class="hljs-keyword">return</span> Promise.resolve(result.value).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(res)</span></span>{
+        <span class="hljs-keyword">return</span> handle(generator.next(res));
+      }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span></span>{
+        <span class="hljs-keyword">return</span> handle(generator.throw(err));
+      });
+    }
+
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">return</span> handle(generator.next());
+    } <span class="hljs-keyword">catch</span> (ex) {
+      <span class="hljs-keyword">return</span> Promise.reject(ex);
+    }
+  }
+}</code></pre>
+<p>Note how we use <code>Promise.resolve</code> to ensure we are always dealing with well behaved
+promises and we use <code>Promise.reject</code> along with a try/catch block to ensure that
+synchronous errors are always converted into asynchronous errors.</p>
+<h2 id="apendix">Further Reading</h2>
+<ul>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/function*">MDN</a> - The mozilla developer network has great documentation on generators.</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">MDN</a> - The mozilla developer network has great documentation on promises.</li>
+<li><a href="http://facebook.github.io/regenerator/">regenerator</a> - A project by Facebook to add generator support to older environments by cross-compiling the code.</li>
+<li><a href="https://github.com/TooTallNate/gnode">gnode</a> - A command line applicaton to use regenerator to support generators in older versions of node.js</li>
+<li><a href="https://github.com/then/yield">then-yield</a> - A library that provides functions for writing code that uses promises with generators.</li>
+<li><a href="http://taskjs.org/">Task.js</a> - An alternative library for using promises with generators.</li>
+<li><a href="https://www.youtube.com/watch?v=qbKWsbJ76-s">YouTube</a> - A video of my JSConf.eu talk that discusses many of the same things as appear in this article.</li>
+</ul>
+<ul class="pager"><li class="previous"><a href="/patterns/">&larr; patterns</a></li>
+<li class="next"><a href="/implementing/">implementing &rarr;</a></li></ul>
+</div><div id="push"></div></div><div id="footer-wrapper"><footer><div class="container"><p>Developed by&nbsp;<a href="http://www.forbeslindesay.co.uk" class="jepso">@ForbesLindesay</a></p><p>Can you make this better?  Please fork it on <a href="https://github.com/ForbesLindesay/promisejs.org" class="jepso">GitHub</a></p></div></footer></div><script async src="/static/3.0.27/show-polyfill/client.js"></script><script>var d = document.createElement('div');
+d.id = 'carbon-location';
+document.getElementsByClassName('title')[0].appendChild(d);
+setTimeout(function () {
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-31798041-3', 'promisejs.org');
+ga('send', 'pageview');
+
+(function (c, s) {
+s.async=true;
+s.src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=promisejsorg";
+s.id="_carbonads_js";
+c.appendChild(s);
+}(d, document.createElement('script')));
+}, 1000);</script><import>./fbpixel.html</import></body></html>

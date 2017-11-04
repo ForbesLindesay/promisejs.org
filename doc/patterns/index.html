@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf8"><title>Promises</title><link href="/static/3.0.27/style/bundle.css" rel="stylesheet"><meta name="viewport" content="width=device-width, minimal-ui"><link href="/app.manifest" rel="manifest"/></head><body><div id="wrap"><div class="navbar navbar-default navbar-static-top"><div class="container"><ul class="nav navbar-nav"><li><a href="/">Promises</a></li><li><a href="/api/">API <span class="hidden-xs hidden-sm hidden-md">Reference</span></a></li><li><a href="/patterns/">Patterns</a></li><li><a href="/generators/">Generators</a></li><li><a href="/implementing/">Implementing</a></li></ul><ul class="nav navbar-nav navbar-right specification"><li><a href="http://promisesaplus.com/">Specification</a></li></ul></div></div><div class="container"><div id="ad-container"></div><div class="title"><h1>Patterns</h1>
+<small>by Forbes Lindesay</small></div>
+<h2 id="intro">Introduction</h2>
+<p>We've seen how even just doing two simple operations one after another can get extremely
+complex when considering error handling in asynchronous code. We've also seen how promises
+help you mitigate this via <code>.then</code>, which causes errors to bubble up the stack by
+default.</p>
+<p>In this article we'll cover some of the more advanced patterns for promise use and some of
+the helper methods to make your Promise code more concise.</p>
+<h2 id="resovle">Promise.resolve(value)</h2>
+<p>Sometimes you already have a value and you want to convert it into a promise. You may also
+sometimes find yourself with a value that may or may not be a promise. Finally you might
+find you have a value that is a promise but does not work as it should (e.g. a jQuery promise)
+and want to convert it into a true promise.</p>
+<pre><code><span class="hljs-keyword">var</span> value = <span class="hljs-number">10</span>;
+<span class="hljs-keyword">var</span> promiseForValue = Promise.resolve(value);
+<span class="hljs-comment">// equivalent to</span>
+<span class="hljs-keyword">var</span> promiseForValue = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill)</span> </span>{
+  fulfill(value);
+});</code></pre>
+<pre><code><span class="hljs-keyword">var</span> jQueryPromise = $.ajax(<span class="hljs-string">'/ajax-endpoint'</span>);
+<span class="hljs-keyword">var</span> realPromise = Promise.resolve(jQueryPromise);
+<span class="hljs-comment">// equivalent to</span>
+<span class="hljs-keyword">var</span> realPromise = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill, reject)</span> </span>{
+  jQueryPromise.then(fulfill, reject);
+});</code></pre>
+<pre><code><span class="hljs-keyword">var</span> maybePromise = <span class="hljs-built_in">Math</span>.random() &gt; <span class="hljs-number">0.5</span> ? <span class="hljs-number">10</span> : Promise.resolve(<span class="hljs-number">10</span>);
+<span class="hljs-keyword">var</span> definitelyPromise = Promise.resolve(maybePromise);
+<span class="hljs-comment">// equivalent to</span>
+<span class="hljs-keyword">var</span> definitelyPromise = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill, reject)</span> </span>{
+  <span class="hljs-keyword">if</span> (isPromise(maybePromise)) {
+    maybePromise.then(fulfill, reject);
+  } <span class="hljs-keyword">else</span> {
+    fulfill(maybePromise);
+  }
+});</code></pre>
+<h2 id="reject">Promise.reject</h2>
+<p>It's best to always avoid throwing synchronous exceptions in an asychronous method. Always
+returning a promise has the benefit that people can always handle all errors in the same
+consistent way. To make it easier to do this, there is a shortcut for generating a rejected
+promise.</p>
+<pre><code><span class="hljs-keyword">var</span> rejectedPromise = Promise.reject(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Whatever'</span>));
+<span class="hljs-comment">// equivalent to</span>
+<span class="hljs-keyword">var</span> rejectedPromise = <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill, reject)</span> </span>{
+  reject(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Whatever'</span>));
+});</code></pre>
+<h2 id="parallel">Parallel operations</h2>
+<p>Trying to do this in parallel only gets more complicated.  Consider the following function
+which attempts to read an array of files (specified by filename) and parse them as JSON then
+returns the resulting array via a callback:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJsonFiles</span><span class="hljs-params">(filenames, callback)</span> </span>{
+  <span class="hljs-keyword">var</span> pending = filenames.length;
+  <span class="hljs-keyword">var</span> called = <span class="hljs-literal">false</span>;
+  <span class="hljs-keyword">var</span> results = [];
+  <span class="hljs-keyword">if</span> (pending === <span class="hljs-number">0</span>) {
+    <span class="hljs-comment">// we need to return early in the case where there</span>
+    <span class="hljs-comment">// are no files to read, but we must not return immediately</span>
+    <span class="hljs-comment">// because that unleashes "Zalgo". This makes code very hard</span>
+    <span class="hljs-comment">// to reason about as the order becomes increasingly</span>
+    <span class="hljs-comment">// non-deterministic.</span>
+    <span class="hljs-keyword">return</span> setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{ callback(); }, <span class="hljs-number">0</span>);
+  }
+  filenames.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(filename, index)</span> </span>{
+    readJSON(filename, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err, res)</span> </span>{
+      <span class="hljs-keyword">if</span> (err) {
+        <span class="hljs-keyword">if</span> (!called) callback(err);
+        <span class="hljs-keyword">return</span>;
+      }
+      results[index] = res;
+      <span class="hljs-keyword">if</span> (<span class="hljs-number">0</span> === --pending) {
+        callback(<span class="hljs-literal">null</span>, results);
+      }
+    });
+  });
+}</code></pre>
+<p>That's a maddening amount of code to have to write for such a simple asynchronous function.
+It is possible to write most of this into a library function that lets you do an asynchronous
+&quot;map&quot; operation, but that only solves the very specific case, and can still be remarkably fiddly.</p>
+<h2 id="all">Promise.all</h2>
+<p>The <code>all</code> function returns a new promise which is fulfilled with an array of fulfillment
+values for the passed promises or rejects with the reason of the first promise that rejects.</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readJsonFiles</span><span class="hljs-params">(filenames)</span> </span>{
+  <span class="hljs-comment">// N.B. passing readJSON as a function, not calling it with `()`</span>
+  <span class="hljs-keyword">return</span> Promise.all(filenames.map(readJSON));
+}
+readJsonFiles([<span class="hljs-string">'a.json'</span>, <span class="hljs-string">'b.json'</span>]).done(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(results)</span> </span>{
+  <span class="hljs-comment">// results is an array of the values stored in a.json and b.json</span>
+}, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(err)</span> </span>{
+  <span class="hljs-comment">// If any of the files fails to be read, err is the first error</span>
+});</code></pre>
+<p><code>Promise.all</code> is a builtin method, so you don't need to worry about implementing it
+yourself, but it serves as a nice demo of how easy promises are to work with.</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">all</span><span class="hljs-params">(promises)</span> </span>{
+  <span class="hljs-keyword">var</span> accumulator = [];
+  <span class="hljs-keyword">var</span> ready = Promise.resolve(<span class="hljs-literal">null</span>);
+
+  promises.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(promise, ndx)</span> </span>{
+    ready = ready.then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      <span class="hljs-keyword">return</span> promise;
+    }).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+      accumulator[ndx] = value;
+    });
+  });
+
+  <span class="hljs-keyword">return</span> ready.then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{ <span class="hljs-keyword">return</span> accumulator; });
+}</code></pre>
+<p>What's going on here is that we start by creating a variable to store the result (called
+<code>accumulator</code>) and a variable to denote whether the result is up to date (called
+<code>ready</code>). We wait on <code>ready</code>, and also update it with each turn of the loop.
+This leads to us putting each <code>value</code> onto the <code>accumulator</code> array one at a time
+in order. By the end of the loop, <code>ready</code> is a promise that will wait for
+all the items to be inserted into the <code>accumulator</code> array.</p>
+<p>All we have to do at the end is wait for the <code>ready</code> promise and then return <code>accumulator</code>.</p>
+<p>The native implementation will be more efficient than this, but it should give you an idea
+of how promises can be combined in interesting ways.</p>
+<h2 id="race">Promise.race</h2>
+<p>Sometimes it is useful to race two promises against each other. Consider the case of writing a timeout
+function.  You could do something like this:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">delay</span><span class="hljs-params">(time)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill)</span> </span>{
+    setTimeout(fulfill, time);
+  });
+}
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">timeout</span><span class="hljs-params">(promise, time)</span> </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(fulfill, reject)</span> </span>{
+    <span class="hljs-comment">// race promise against delay</span>
+    promise.then(fulfill, reject);
+    delay(time).done(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      reject(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Operation timed out'</span>));
+    });
+  });
+}</code></pre>
+<p>Promise.race makes races like this even easier to run:</p>
+<pre><code><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">timeout</span><span class="hljs-params">(promise, time)</span> </span>{
+  <span class="hljs-keyword">return</span> Promise.race([promise, delay(time).then(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Operation timed out'</span>);
+  })]);
+}</code></pre>
+<p>Whichever promise settles (fulfills or rejects) first wins the race, and determines the result.</p>
+<h2 id="apendix">Further Reading</h2>
+<ul>
+<li><a href="/generators/">Generators</a> - learn how to use generators and promises together to make programming with promises really easy (in browsers with ES6 support)</li>
+<li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise">MDN</a> - The mozilla developer network has great documentation on promises.</li>
+<li><a href="https://github.com/then/promise">then/promise</a> - An implementation of all these helper methods in JavaScript.</li>
+</ul>
+<ul class="pager"><li class="previous"><a href="/api/">&larr; API Reference</a></li>
+<li class="next"><a href="/generators/">generators &rarr;</a></li></ul>
+</div><div id="push"></div></div><div id="footer-wrapper"><footer><div class="container"><p>Developed by&nbsp;<a href="http://www.forbeslindesay.co.uk" class="jepso">@ForbesLindesay</a></p><p>Can you make this better?  Please fork it on <a href="https://github.com/ForbesLindesay/promisejs.org" class="jepso">GitHub</a></p></div></footer></div><script async src="/static/3.0.27/show-polyfill/client.js"></script><script>var d = document.createElement('div');
+d.id = 'carbon-location';
+document.getElementsByClassName('title')[0].appendChild(d);
+setTimeout(function () {
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-31798041-3', 'promisejs.org');
+ga('send', 'pageview');
+
+(function (c, s) {
+s.async=true;
+s.src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=promisejsorg";
+s.id="_carbonads_js";
+c.appendChild(s);
+}(d, document.createElement('script')));
+}, 1000);</script><import>./fbpixel.html</import></body></html>

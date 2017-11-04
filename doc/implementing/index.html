@@ -1,0 +1,321 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf8"><title>Promises</title><link href="/static/3.0.27/style/bundle.css" rel="stylesheet"><meta name="viewport" content="width=device-width, minimal-ui"><link href="/app.manifest" rel="manifest"/></head><body><div id="wrap"><div class="navbar navbar-default navbar-static-top"><div class="container"><ul class="nav navbar-nav"><li><a href="/">Promises</a></li><li><a href="/api/">API <span class="hidden-xs hidden-sm hidden-md">Reference</span></a></li><li><a href="/patterns/">Patterns</a></li><li><a href="/generators/">Generators</a></li><li><a href="/implementing/">Implementing</a></li></ul><ul class="nav navbar-nav navbar-right specification"><li><a href="http://promisesaplus.com/">Specification</a></li></ul></div></div><div class="container"><div id="ad-container"></div><div class="title"><h1>Implementing</h1>
+<small>by Forbes Lindesay</small></div>
+<h2 id="intro">Introduction</h2>
+<p>This article was originally written as an answer on
+<a href="http://stackoverflow.com/questions/23772801/basic-javascript-promise-implementation-attempt/23785244#23785244">Stack Overflow</a>.
+The hope is that by seeing how you would go about implementing <code>Promise</code> in JavaScript,
+you may gain a better understanding of how promises behave.</p>
+<h2 id="state">State Machine</h2>
+<p>Since a promise is just a state machine, we should start by considering the state information we will need later.</p>
+<pre><code><span class="hljs-keyword">var</span> PENDING = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">var</span> FULFILLED = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">var</span> REJECTED = <span class="hljs-number">2</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Promise</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-comment">// store state which can be PENDING, FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> state = PENDING;
+
+  <span class="hljs-comment">// store value or error once FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> value = <span class="hljs-literal">null</span>;
+
+  <span class="hljs-comment">// store sucess &amp; failure handlers attached by calling .then or .done</span>
+  <span class="hljs-keyword">var</span> handlers = [];
+}</code></pre>
+<h2 id="transitions">Transitions</h2>
+<p>Next, lets consider the two key transitions that can occur, fulfilling and rejecting:</p>
+<pre><code><span class="hljs-keyword">var</span> PENDING = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">var</span> FULFILLED = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">var</span> REJECTED = <span class="hljs-number">2</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Promise</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-comment">// store state which can be PENDING, FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> state = PENDING;
+
+  <span class="hljs-comment">// store value once FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> value = <span class="hljs-literal">null</span>;
+
+  <span class="hljs-comment">// store sucess &amp; failure handlers</span>
+  <span class="hljs-keyword">var</span> handlers = [];
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">fulfill</span><span class="hljs-params">(result)</span> </span>{
+    state = FULFILLED;
+    value = result;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reject</span><span class="hljs-params">(error)</span> </span>{
+    state = REJECTED;
+    value = error;
+  }
+}</code></pre>
+<p>That gives us the basic low level transitions, but lets consider an extra, higher-level
+transition called <code>resolve</code></p>
+<pre><code><span class="hljs-keyword">var</span> PENDING = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">var</span> FULFILLED = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">var</span> REJECTED = <span class="hljs-number">2</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Promise</span><span class="hljs-params">()</span> </span>{
+  <span class="hljs-comment">// store state which can be PENDING, FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> state = PENDING;
+
+  <span class="hljs-comment">// store value once FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> value = <span class="hljs-literal">null</span>;
+
+  <span class="hljs-comment">// store sucess &amp; failure handlers</span>
+  <span class="hljs-keyword">var</span> handlers = [];
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">fulfill</span><span class="hljs-params">(result)</span> </span>{
+    state = FULFILLED;
+    value = result;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reject</span><span class="hljs-params">(error)</span> </span>{
+    state = REJECTED;
+    value = error;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">resolve</span><span class="hljs-params">(result)</span> </span>{
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">var</span> then = getThen(result);
+      <span class="hljs-keyword">if</span> (then) {
+        doResolve(then.bind(result), resolve, reject)
+        <span class="hljs-keyword">return</span>
+      }
+      fulfill(result);
+    } <span class="hljs-keyword">catch</span> (e) {
+      reject(e);
+    }
+  }
+}</code></pre>
+<p>Note how <code>resolve</code> accepts either a promise or a plain value and if it's a promise, waits for it to complete.
+A promise must never be fulfilled with another promise, so it is this <code>resolve</code> function that we will expose, rather
+than the internal <code>fulfill</code>. We've used a couple of helper methods, so lets define those:</p>
+<pre><code><span class="hljs-comment">/**
+ * Check if a value is a Promise and, if it is,
+ * return the `then` method of that promise.
+ *
+ * @param {Promise|Any} value
+ * @return {Function|Null}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getThen</span><span class="hljs-params">(value)</span> </span>{
+  <span class="hljs-keyword">var</span> t = <span class="hljs-keyword">typeof</span> value;
+  <span class="hljs-keyword">if</span> (value &amp;&amp; (t === <span class="hljs-string">'object'</span> || t === <span class="hljs-string">'function'</span>)) {
+    <span class="hljs-keyword">var</span> then = value.then;
+    <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> then === <span class="hljs-string">'function'</span>) {
+      <span class="hljs-keyword">return</span> then;
+    }
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;
+}
+
+<span class="hljs-comment">/**
+ * Take a potentially misbehaving resolver function and make sure
+ * onFulfilled and onRejected are only called once.
+ *
+ * Makes no guarantees about asynchrony.
+ *
+ * @param {Function} fn A resolver function that may not be trusted
+ * @param {Function} onFulfilled
+ * @param {Function} onRejected
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">doResolve</span><span class="hljs-params">(fn, onFulfilled, onRejected)</span> </span>{
+  <span class="hljs-keyword">var</span> done = <span class="hljs-literal">false</span>;
+  <span class="hljs-keyword">try</span> {
+    fn(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(value)</span> </span>{
+      <span class="hljs-keyword">if</span> (done) <span class="hljs-keyword">return</span>
+      done = <span class="hljs-literal">true</span>
+      onFulfilled(value)
+    }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(reason)</span> </span>{
+      <span class="hljs-keyword">if</span> (done) <span class="hljs-keyword">return</span>
+      done = <span class="hljs-literal">true</span>
+      onRejected(reason)
+    })
+  } <span class="hljs-keyword">catch</span> (ex) {
+    <span class="hljs-keyword">if</span> (done) <span class="hljs-keyword">return</span>
+    done = <span class="hljs-literal">true</span>
+    onRejected(ex)
+  }
+}</code></pre>
+<h2 id="constructing">Constructing</h2>
+<p>We now have the completed internal state machine, but we have yet to expose either
+a method of resolving the promise or of observing it. Lets start by adding a way
+of resolving the promise.</p>
+<pre><code><span class="hljs-keyword">var</span> PENDING = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">var</span> FULFILLED = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">var</span> REJECTED = <span class="hljs-number">2</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Promise</span><span class="hljs-params">(fn)</span> </span>{
+  <span class="hljs-comment">// store state which can be PENDING, FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> state = PENDING;
+
+  <span class="hljs-comment">// store value once FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> value = <span class="hljs-literal">null</span>;
+
+  <span class="hljs-comment">// store sucess &amp; failure handlers</span>
+  <span class="hljs-keyword">var</span> handlers = [];
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">fulfill</span><span class="hljs-params">(result)</span> </span>{
+    state = FULFILLED;
+    value = result;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reject</span><span class="hljs-params">(error)</span> </span>{
+    state = REJECTED;
+    value = error;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">resolve</span><span class="hljs-params">(result)</span> </span>{
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">var</span> then = getThen(result);
+      <span class="hljs-keyword">if</span> (then) {
+        doResolve(then.bind(result), resolve, reject)
+        <span class="hljs-keyword">return</span>
+      }
+      fulfill(result);
+    } <span class="hljs-keyword">catch</span> (e) {
+      reject(e);
+    }
+  }
+
+  doResolve(fn, resolve, reject);
+}</code></pre>
+<p>As you can see, we re-use <code>doResolve</code> because we have another untrusted resolver.
+The <code>fn</code> is allowed to call both <code>resolve</code> and <code>reject</code> multiple times,
+and even throw exceptions.  It is up to us to ensure that the promise is only resolved
+or rejected once, and then never transitions into a different state ever again.</p>
+<h2 id="done">Observing (via .done)</h2>
+<p>We now have a completed state machine, but we still have no way to observe any changes to it.
+Our ultimate goal is to implement <code>.then</code>, but the semantics of <code>.done</code> are much
+simpler so lets implement that first.</p>
+<p>Our goal here is to implement <code>promise.done(onFulfilled, onRejected)</code> such that:</p>
+<ul>
+<li>only one of <code>onFulfilled</code> or <code>onRejected</code> is called</li>
+<li>it is only called once</li>
+<li>it is never called until the next tick (i.e. after the <code>.done</code> method has returned)</li>
+<li>it is called regardless of whether the promise is resolved before or after we call <code>.done</code></li>
+</ul>
+<pre><code><span class="hljs-keyword">var</span> PENDING = <span class="hljs-number">0</span>;
+<span class="hljs-keyword">var</span> FULFILLED = <span class="hljs-number">1</span>;
+<span class="hljs-keyword">var</span> REJECTED = <span class="hljs-number">2</span>;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Promise</span><span class="hljs-params">(fn)</span> </span>{
+  <span class="hljs-comment">// store state which can be PENDING, FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> state = PENDING;
+
+  <span class="hljs-comment">// store value once FULFILLED or REJECTED</span>
+  <span class="hljs-keyword">var</span> value = <span class="hljs-literal">null</span>;
+
+  <span class="hljs-comment">// store sucess &amp; failure handlers</span>
+  <span class="hljs-keyword">var</span> handlers = [];
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">fulfill</span><span class="hljs-params">(result)</span> </span>{
+    state = FULFILLED;
+    value = result;
+    handlers.forEach(handle);
+    handlers = <span class="hljs-literal">null</span>;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">reject</span><span class="hljs-params">(error)</span> </span>{
+    state = REJECTED;
+    value = error;
+    handlers.forEach(handle);
+    handlers = <span class="hljs-literal">null</span>;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">resolve</span><span class="hljs-params">(result)</span> </span>{
+    <span class="hljs-keyword">try</span> {
+      <span class="hljs-keyword">var</span> then = getThen(result);
+      <span class="hljs-keyword">if</span> (then) {
+        doResolve(then.bind(result), resolve, reject)
+        <span class="hljs-keyword">return</span>
+      }
+      fulfill(result);
+    } <span class="hljs-keyword">catch</span> (e) {
+      reject(e);
+    }
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">handle</span><span class="hljs-params">(handler)</span> </span>{
+    <span class="hljs-keyword">if</span> (state === PENDING) {
+      handlers.push(handler);
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">if</span> (state === FULFILLED &amp;&amp;
+        <span class="hljs-keyword">typeof</span> handler.onFulfilled === <span class="hljs-string">'function'</span>) {
+        handler.onFulfilled(value);
+      }
+      <span class="hljs-keyword">if</span> (state === REJECTED &amp;&amp;
+        <span class="hljs-keyword">typeof</span> handler.onRejected === <span class="hljs-string">'function'</span>) {
+        handler.onRejected(value);
+      }
+    }
+  }
+
+  <span class="hljs-keyword">this</span>.done = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(onFulfilled, onRejected)</span> </span>{
+    <span class="hljs-comment">// ensure we are always asynchronous</span>
+    setTimeout(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">()</span> </span>{
+      handle({
+        onFulfilled: onFulfilled,
+        onRejected: onRejected
+      });
+    }, <span class="hljs-number">0</span>);
+  }
+
+  doResolve(fn, resolve, reject);
+}</code></pre>
+<p>We make sure to notify the handlers when the Promise is resolved or rejected.
+We only ever do this in the next tick.</p>
+<h2 id="then">Observing (via .then)</h2>
+<p>Now that we have <code>.done</code> implemented, we can easily implement <code>.then</code> to
+just do the same thing, but construct a new Promise in the process.</p>
+<pre><code><span class="hljs-keyword">this</span>.then = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(onFulfilled, onRejected)</span> </span>{
+  <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+  <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> Promise(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(resolve, reject)</span> </span>{
+    <span class="hljs-keyword">return</span> self.done(<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(result)</span> </span>{
+      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> onFulfilled === <span class="hljs-string">'function'</span>) {
+        <span class="hljs-keyword">try</span> {
+          <span class="hljs-keyword">return</span> resolve(onFulfilled(result));
+        } <span class="hljs-keyword">catch</span> (ex) {
+          <span class="hljs-keyword">return</span> reject(ex);
+        }
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> resolve(result);
+      }
+    }, <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-params">(error)</span> </span>{
+      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> onRejected === <span class="hljs-string">'function'</span>) {
+        <span class="hljs-keyword">try</span> {
+          <span class="hljs-keyword">return</span> resolve(onRejected(error));
+        } <span class="hljs-keyword">catch</span> (ex) {
+          <span class="hljs-keyword">return</span> reject(ex);
+        }
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> reject(error);
+      }
+    });
+  });
+}</code></pre>
+<h2 id="apendix">Further Reading</h2>
+<ul>
+<li><a href="https://github.com/then/promise/blob/master/src/core.js">then/promise</a> implements Promise in a very similar way.</li>
+<li><a href="https://github.com/kriskowal/q/blob/v1/design/README.md">kriskowal/q</a> is a very different implementation of promises and comes with a very nice walkthrough of the design principals behind it.</li>
+<li><a href="https://github.com/petkaantonov/bluebird">petkaantonov/bluebird</a> is a promise implementation that was designed exclusively for performance (along with its own esoteric helper methods).  The <a href="https://github.com/petkaantonov/bluebird/wiki/Optimization-killers">Optimization Killers</a> Wiki page is extremely useful for picking up tips.</li>
+<li><a href="http://stackoverflow.com/questions/23772801/basic-javascript-promise-implementation-attempt/23785244#23785244">Stack Overflow</a> is the original source of this article.</li>
+</ul>
+<ul class="pager"><li class="previous"><a href="/generators/">&larr; generators</a></li></ul>
+</div><div id="push"></div></div><div id="footer-wrapper"><footer><div class="container"><p>Developed by&nbsp;<a href="http://www.forbeslindesay.co.uk" class="jepso">@ForbesLindesay</a></p><p>Can you make this better?  Please fork it on <a href="https://github.com/ForbesLindesay/promisejs.org" class="jepso">GitHub</a></p></div></footer></div><script async src="/static/3.0.27/show-polyfill/client.js"></script><script>var d = document.createElement('div');
+d.id = 'carbon-location';
+document.getElementsByClassName('title')[0].appendChild(d);
+setTimeout(function () {
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-31798041-3', 'promisejs.org');
+ga('send', 'pageview');
+
+(function (c, s) {
+s.async=true;
+s.src="//cdn.carbonads.com/carbon.js?zoneid=1673&serve=C6AILKT&placement=promisejsorg";
+s.id="_carbonads_js";
+c.appendChild(s);
+}(d, document.createElement('script')));
+}, 1000);</script><import>./fbpixel.html</import></body></html>
