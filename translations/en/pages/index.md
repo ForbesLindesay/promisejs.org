@@ -153,8 +153,8 @@ Now we can re-write our original example as simply:
 :js
   function readJSON(filename){
     return readFile(filename, 'utf8').then(function (res){
-      return JSON.parse(res)
-    })
+      return JSON.parse(res);
+    });
   }
 
 Since `JSON.parse` is just a function, we could re-write this as:
