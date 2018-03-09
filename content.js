@@ -57,19 +57,6 @@ module.exports = function getContent(url, options) {
       plugins.push({regexp: regexp, replacer: replacer});
     }
     plugin(
-      /\:([a-z\-]+)((?:\n(?:  .*)?)*)/g,
-      function (_, name, content) {
-        return require('./components/' + name)({
-          content: content.split('\n').map(function (line) {
-            return line.substr(line.length >= 2 ? 2 : 0);
-          }).join('\n').trim()
-        }, {
-          read: read,
-          render: render
-        });
-      }
-    );
-    plugin(
       /\@([a-z\-]+)(\(.*\))?((?:\n(?:  .*)?)*)/g,
       function (_, name, attrs, content) {
         return require('./components/' + name)({
@@ -79,6 +66,19 @@ module.exports = function getContent(url, options) {
               return line.substr(line.length >= 2 ? 2 : 0);
             }).join('\n').trim()
           )
+        }, {
+          read: read,
+          render: render
+        });
+      }
+    );
+    plugin(
+      /\:([a-z\-]+)((?:\n(?:  .*)?)*)/g,
+      function (_, name, content) {
+        return require('./components/' + name)({
+          content: content.split('\n').map(function (line) {
+            return line.substr(line.length >= 2 ? 2 : 0);
+          }).join('\n').trim()
         }, {
           read: read,
           render: render
