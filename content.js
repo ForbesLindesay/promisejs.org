@@ -57,7 +57,7 @@ module.exports = function getContent(url, options) {
       plugins.push({regexp: regexp, replacer: replacer});
     }
     plugin(
-      /\@([a-z\-]+)(\(.*\))?((?:\n(?:  .*)?)*)/g,
+      /^\@([a-z\-]+)(\(.*\))?((?:\n(?:  .*)?)*)/gm,
       function (_, name, attrs, content) {
         return require('./components/' + name)({
           attrs: attrs,
@@ -73,7 +73,7 @@ module.exports = function getContent(url, options) {
       }
     );
     plugin(
-      /\:([a-z\-]+)((?:\n(?:  .*)?)*)/g,
+      /^\:([a-z\-]+)((?:\n(?:  .*)?)*)/gm,
       function (_, name, content) {
         return require('./components/' + name)({
           content: content.split('\n').map(function (line) {
