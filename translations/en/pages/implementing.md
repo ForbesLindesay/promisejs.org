@@ -329,7 +329,7 @@ just do the same thing, but construct a new Promise in the process.
 ##[apendix] Further Reading
 
  - [then/promise](https://github.com/then/promise/blob/master/src/core.js) implements Promise in a very similar way.
- - [kriskowal/q](https://github.com/kriskowal/q/blob/v1/design/README.md) is a very different implementation of promises and comes with a very nice walkthrough of the design principals behind it.
+ - [kriskowal/q](https://github.com/kriskowal/q/blob/v1/design/README.md) is a very different implementation of promises and comes with a very nice walkthrough of the design principles behind it.
  - [petkaantonov/bluebird](https://github.com/petkaantonov/bluebird) is a promise implementation that was designed exclusively for performance (along with its own esoteric helper methods).  The [Optimization Killers](https://github.com/petkaantonov/bluebird/wiki/Optimization-killers) Wiki page is extremely useful for picking up tips.
  - [Stack Overflow](http://stackoverflow.com/questions/23772801/basic-javascript-promise-implementation-attempt/23785244#23785244) is the original source of this article.
 
