@@ -21,17 +21,14 @@
     "uglify-js": "^2.4.24"
   },
   "devDependencies": {
-    "mandate": "*",
-    "mocha": "*",
     "rimraf": "^2.4.3",
-    "stop": "^3.0.1",
-    "versionify": "*"
+    "s3": "^4.4.0",
+    "stop": "^3.0.1"
   },
   "scripts": {
-    "prerelease": "versionify && rimraf out",
-    "release": "node stop && mandate",
-    "postrelease": "rimraf out",
-    "test": "mocha -R spec"
+    "prebuild": "rimraf out",
+    "build": "node stop",
+    "release": "node upload"
   },
   "repository": {
     "type": "git",

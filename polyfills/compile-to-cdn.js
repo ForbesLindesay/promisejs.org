@@ -31,6 +31,10 @@ function output(str, location, filename, minify) {
   return stat(filename).then(function () {
     console.log('Not re-building ' + location + ' as it already exists.');
   }, function () {
+    if (process.env.CI) {
+      console.error('You must rebuild locally, refusing to write ' + location + ' on CI.');
+      process.exit(1);
+    }
     var sourceMaps = /\/\/[#@] ?sourceMappingURL=data:application\/json;(?:charset:utf-8;)?base64,([a-zA-Z0-9+\/]+)={0,2}$/m.exec(str);
 
     if (!minify && !sourceMaps) {

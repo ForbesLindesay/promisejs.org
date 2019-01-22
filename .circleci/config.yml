@@ -1,0 +1,78 @@
+version: 2
+
+refs:
+  - &container
+    docker:
+      - image: node:10
+    working_directory: ~/repo
+  - &restore_cache
+    restore_cache:
+      keys:
+        - v1-dependencies-{{ checksum "yarn.lock" }}
+        - v1-dependencies-
+  - &save_cache
+    save_cache:
+      paths:
+        - node_modules
+      key: v1-dependencies-{{ checksum "yarn.lock" }}
+  - &yarn_install
+    run:
+      name: Yarn Install
+      command: yarn --frozen-lockfile
+  - &build
+    run:
+      name: Build
+      command: yarn build
+
+jobs:
+  all:
+    <<: *container
+    steps:
+      - checkout
+      - *restore_cache
+      - *yarn_install
+      - *save_cache
+      - *build
+      - run:
+          name: Release
+          command: PREFIX=builds/$CIRCLE_BRANCH yarn release
+
+  master:
+    <<: *container
+    steps:
+      - checkout
+      - *restore_cache
+      - *yarn_install
+      - *save_cache
+      - *build
+      - run:
+          name: Release
+          command: yarn release
+
+workflows:
+  version: 2
+  all:
+    jobs:
+      - all:
+          context: common-env
+          filters:
+            branches:
+              ignore:
+                - master
+  master:
+    jobs:
+      - master:
+          context: common-env
+          filters:
+            branches:
+              only: master
+  nightly:
+    triggers:
+      - schedule:
+          cron: '0 1 * * *'
+          filters:
+            branches:
+              only: master
+    jobs:
+      - all:
+          context: common-env
