@@ -184,9 +184,9 @@ convert it to a really simple standardised promise:
 
 ###[browser] Browser
 
-Promises are currently only supported by a pretty small selection of browsers
-([see kangax compatibility tables](http://kangax.github.io/es5-compat-table/es6/#Promise)).
-The good news is that they're extremely easy to polyfill ([minified](/polyfills/promise-$versions.promise$.min.js) / [unminified](/polyfills/promise-$versions.promise$.js)):
+Most modern browsers now support promises natively
+([caniuse.com](https://caniuse.com/#feat=promises)).
+If you need support in older browsers though, they're easy to polyfill ([minified](/polyfills/promise-$versions.promise$.min.js) / [unminified](/polyfills/promise-$versions.promise$.js)):
 
 :html
   <script src="https://www.promisejs.org/polyfills/promise-$versions.promise$.min.js"></script>
