@@ -8,7 +8,7 @@ var getContent = require('./content');
 var app = express();
 app.set('views', __dirname + '/views');
 
-var staticFiles = app.locals.staticFiles = '/static/' + require('./package.json').version;
+var staticFiles = app.locals.staticFiles = '/static/' + (process.env.CIRCLE_SHA1 ? process.env.CIRCLE_SHA1.substr(0, 10) : 'dev');
 
 app.use(require('static-favicon')(__dirname + '/favicon.ico'))
 
