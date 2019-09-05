@@ -157,7 +157,7 @@ synchronous errors are always converted into asynchronous errors.
  - [regenerator](http://facebook.github.io/regenerator/) - A project by Facebook to add generator support to older environments by cross-compiling the code.
  - [gnode](https://github.com/TooTallNate/gnode) - A command line applicaton to use regenerator to support generators in older versions of node.js
  - [then-yield](https://github.com/then/yield) - A library that provides functions for writing code that uses promises with generators.
- - [Task.js](http://taskjs.org/) - An alternative library for using promises with generators.
+ - [Task.js](https://www.npmjs.com/package/task-js) - An alternative library for using promises with generators.
  - [YouTube](https://www.youtube.com/watch?v=qbKWsbJ76-s) - A video of my JSConf.eu talk that discusses many of the same things as appear in this article.
 
 @pager
