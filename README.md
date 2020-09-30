@@ -1,4 +1,4 @@
-# promisejs.org
+# promisejs.org--An Amazing Project
 
 A website dedicated to promises in JavaScript
 
